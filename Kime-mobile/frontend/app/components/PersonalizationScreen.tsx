@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
 
-const PersonalizationScreen = () => {
+type PersonalizationScreenProps = {
+  onGoBack: () => void;
+};
+
+const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack }) => {
   const [step, setStep] = useState(1);
 
   // Estados individuales
@@ -30,7 +34,12 @@ const PersonalizationScreen = () => {
   };
 
   const handleBack = () => {
-    if (step > 1) setStep((prev) => prev - 1);
+    if (step === 1) {
+      // Si estamos en el primer paso, usar la prop onGoBack para volver al registro
+      onGoBack();
+    } else {
+      setStep((prev) => prev - 1);
+    }
   };
 
   return (
@@ -131,17 +140,15 @@ const PersonalizationScreen = () => {
 
       {/* Navegación */}
       <View style={styles.navigationButtons}>
-        {step > 1 && (
-          <TouchableOpacity style={styles.navButton} onPress={handleBack}>
-            <Text style={styles.navButtonText}>Back</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity style={styles.navButton} onPress={handleBack}>
+          <Text style={styles.navButtonText}>{step === 1 ? "Back to Register" : "Back"}</Text>
+        </TouchableOpacity>
         {step < 3 ? (
           <TouchableOpacity style={styles.navButton} onPress={handleNext}>
             <Text style={styles.navButtonText}>Continue</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.navButton} onPress={() => console.log("Finalizar")}>
+          <TouchableOpacity style={styles.navButton} onPress={() => console.log("Finish")}>
             <Text style={styles.navButtonText}>Finish</Text>
           </TouchableOpacity>
         )}
@@ -201,4 +208,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PersonalizationScreen; 
+export default PersonalizationScreen;

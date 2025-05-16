@@ -8,7 +8,12 @@ import {
   ScrollView,
 } from "react-native";
 
-const RegistrationForm = () => {
+// ✅ Declaramos el tipo de props que el componente espera
+type RegistrationFormProps = {
+    onRegistrationComplete: () => void;
+  };
+  
+  const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
@@ -20,112 +25,84 @@ const RegistrationForm = () => {
     description: "",
   });
 
-  const [step, setStep] = useState(1); // Estado para controlar la vista (1 = Registro, 2 = Personalización)
-
   const handleChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
   };
 
   const handleContinue = () => {
-    setStep(2); // Cambia a la vista de personalización
-  };
-
-  const handleBack = () => {
-    setStep(1); // Regresa a la vista de registro
+    // Aquí podrías hacer validaciones si quieres
+    onRegistrationComplete(); // ✅ Llama al callback que te lleva a la pantalla de personalización
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {step === 1 ? (
-        // Vista de Registro
-        <View>
-          <Text style={styles.title}>Registro de Usuario</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre"
-            placeholderTextColor="#A9D6E5"
-            value={formData.name}
-            onChangeText={(value) => handleChange("name", value)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Apellidos"
-            placeholderTextColor="#A9D6E5"
-            value={formData.lastName}
-            onChangeText={(value) => handleChange("lastName", value)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#A9D6E5"
-            value={formData.email}
-            onChangeText={(value) => handleChange("email", value)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            placeholderTextColor="#A9D6E5"
-            secureTextEntry
-            value={formData.password}
-            onChangeText={(value) => handleChange("password", value)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Dirección"
-            placeholderTextColor="#A9D6E5"
-            value={formData.address}
-            onChangeText={(value) => handleChange("address", value)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Código Postal"
-            placeholderTextColor="#A9D6E5"
-            value={formData.postalCode}
-            onChangeText={(value) => handleChange("postalCode", value)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Teléfono"
-            placeholderTextColor="#A9D6E5"
-            value={formData.phone}
-            onChangeText={(value) => handleChange("phone", value)}
-          />
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Descripción"
-            placeholderTextColor="#A9D6E5"
-            value={formData.description}
-            onChangeText={(value) => handleChange("description", value)}
-            multiline
-            numberOfLines={4}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
-            <Text style={styles.buttonText}>Continuar</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        // Vista de Personalización
-        <View>
-          <Text style={styles.title}>Personaliza tu Experiencia</Text>
-          <Text style={styles.question}>¿Sigues alguna dieta específica?</Text>
-          {["Vegana", "Vegetariana", "Keto", "Sin gluten", "Sin lactosa", "Otra"].map((option) => (
-            <TouchableOpacity key={option} style={styles.option}>
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
+      <View>
+        <Text style={styles.title}>Registro de Usuario</Text>
 
-          <Text style={styles.question}>¿Tienes alergias?</Text>
-          {["Frutos secos", "Lácteos", "Mariscos", "Gluten", "Otra"].map((option) => (
-            <TouchableOpacity key={option} style={styles.option}>
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre"
+          placeholderTextColor="#A9D6E5"
+          value={formData.name}
+          onChangeText={(value) => handleChange("name", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Apellidos"
+          placeholderTextColor="#A9D6E5"
+          value={formData.lastName}
+          onChangeText={(value) => handleChange("lastName", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#A9D6E5"
+          value={formData.email}
+          onChangeText={(value) => handleChange("email", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña"
+          placeholderTextColor="#A9D6E5"
+          secureTextEntry
+          value={formData.password}
+          onChangeText={(value) => handleChange("password", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Dirección"
+          placeholderTextColor="#A9D6E5"
+          value={formData.address}
+          onChangeText={(value) => handleChange("address", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Código Postal"
+          placeholderTextColor="#A9D6E5"
+          value={formData.postalCode}
+          onChangeText={(value) => handleChange("postalCode", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Teléfono"
+          placeholderTextColor="#A9D6E5"
+          value={formData.phone}
+          onChangeText={(value) => handleChange("phone", value)}
+        />
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          placeholder="Descripción"
+          placeholderTextColor="#A9D6E5"
+          value={formData.description}
+          onChangeText={(value) => handleChange("description", value)}
+          multiline
+          numberOfLines={4}
+        />
 
-          <TouchableOpacity style={styles.button} onPress={handleBack}>
-            <Text style={styles.buttonText}>Atrás</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        <TouchableOpacity style={styles.button} onPress={handleContinue}>
+          <Text style={styles.buttonText}>Continuar</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -168,21 +145,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#003366",
     fontWeight: "bold",
-    fontSize: 16,
-  },
-  question: {
-    fontSize: 18,
-    color: "#FFFFFF",
-    marginBottom: 10,
-  },
-  option: {
-    backgroundColor: "#003366",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  optionText: {
-    color: "#A9D6E5",
     fontSize: 16,
   },
 });
