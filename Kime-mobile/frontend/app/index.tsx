@@ -1,17 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { StyleSheet, View, Image } from "react-native";
+import App from "./app"; // importa el componente que maneja la navegación
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hello World</Text>
-      <Text style={styles.subtitle}>This is the first page of your app.</Text>
+      <View style={styles.main}>
+        <Image
+          source={require("../images/logomacco.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <App />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex:1, alignItems:'center', justifyContent:'center', padding:24 },
-  title: { fontSize:64, fontWeight:'bold' },
-  subtitle: { fontSize:36, color:'#38434D' },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#001F3F",
+    padding: 24,
+  },
+  main: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    maxWidth: 960,
+    marginHorizontal: "auto",
+  },
+  logo: {
+    width: 200,
+    height: 100,
+    marginBottom: 20,
+  },
 });
