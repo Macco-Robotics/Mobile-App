@@ -7,7 +7,7 @@ export default function Page() {
     <View style={styles.container}>
       <View style={styles.main}>
         <Image
-          source={require("../images/logomacco.png")}
+          source={require("./images/logomacco.png")}
           style={styles.logo}
           resizeMode="contain"
         />

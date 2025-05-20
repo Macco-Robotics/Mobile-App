@@ -1,151 +1,164 @@
 import React, { useState } from "react";
 import {
   StyleSheet,
+  View,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
 } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
 
-// ✅ Declaramos el tipo de props que el componente espera
-type RegistrationFormProps = {
-    onRegistrationComplete: () => void;
-  };
-  
-  const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    lastName: "",
+interface RegistrationFormProps {
+  onRegistrationComplete: () => void; // Define la prop
+}
+
+const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
+  const [form, setForm] = useState({
+    nombre: "",
+    apellidos: "",
     email: "",
     password: "",
-    address: "",
-    postalCode: "",
-    phone: "",
-    description: "",
+    direccion: "",
+    codigoPostal: "",
   });
 
-  const handleChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
+  const onChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleContinue = () => {
-    // Aquí podrías hacer validaciones si quieres
-    onRegistrationComplete(); // ✅ Llama al callback que te lleva a la pantalla de personalización
+  const handleRegister = () => {
+    console.log("Form submitted:", form);
+    onRegistrationComplete(); // Llama a la función pasada como prop
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View>
-        <Text style={styles.title}>Registro de Usuario</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.card}>
+        {/* Icono circular superpuesto */}
+        <View style={styles.avatarCircle}>
+          <FontAwesome5 name="user" size={36} color="#0F7C99" />
+          <View style={styles.cameraIcon}>
+            <FontAwesome5 name="camera" size={16} color="#0F7C99" />
+          </View>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre"
-          placeholderTextColor="#A9D6E5"
-          value={formData.name}
-          onChangeText={(value) => handleChange("name", value)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Apellidos"
-          placeholderTextColor="#A9D6E5"
-          value={formData.lastName}
-          onChangeText={(value) => handleChange("lastName", value)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#A9D6E5"
-          value={formData.email}
-          onChangeText={(value) => handleChange("email", value)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          placeholderTextColor="#A9D6E5"
-          secureTextEntry
-          value={formData.password}
-          onChangeText={(value) => handleChange("password", value)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Dirección"
-          placeholderTextColor="#A9D6E5"
-          value={formData.address}
-          onChangeText={(value) => handleChange("address", value)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Código Postal"
-          placeholderTextColor="#A9D6E5"
-          value={formData.postalCode}
-          onChangeText={(value) => handleChange("postalCode", value)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono"
-          placeholderTextColor="#A9D6E5"
-          value={formData.phone}
-          onChangeText={(value) => handleChange("phone", value)}
-        />
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Descripción"
-          placeholderTextColor="#A9D6E5"
-          value={formData.description}
-          onChangeText={(value) => handleChange("description", value)}
-          multiline
-          numberOfLines={4}
-        />
+        <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>
+          {[
+            { label: "Nombre", field: "nombre", placeholder: "Marta" },
+            { label: "Apellidos", field: "apellidos", placeholder: "López Ruiz" },
+            { label: "Email", field: "email", placeholder: "SampleDomain" },
+            { label: "Contraseña", field: "password", placeholder: "••••••••", secure: true },
+            { label: "Dirección", field: "direccion", placeholder: "Calle Sierpes, nº10" },
+            { label: "Código Postal", field: "codigoPostal", placeholder: "41004" },
+          ].map(({ label, field, placeholder, secure }) => (
+            <View key={field} style={styles.inputGroup}>
+              <Text style={styles.label}>{label}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={placeholder}
+                placeholderTextColor="#A9C8D9"
+                secureTextEntry={secure}
+                value={form[field]}
+                onChangeText={(text) => onChange(field, text)}
+              />
+            </View>
+          ))}
+        </ScrollView>
 
-        <TouchableOpacity style={styles.button} onPress={handleContinue}>
-          <Text style={styles.buttonText}>Continuar</Text>
+        {/* Botón de Registrar */}
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Registrar</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: "#001F3F",
+    justifyContent: "center",
+    paddingHorizontal: 20, // margen lateral
+  },
+  card: {
+    backgroundColor: "#CAF0F8",
+    width: "100%", // ocupa todo el ancho menos el padding horizontal del container
+    maxHeight: "85%",
+    maxWidth: 900, // opcional para que no sea muy ancho en pantallas grandes
+    borderRadius: 20,
+    paddingTop: 60,
+    paddingHorizontal: 55,
+    paddingBottom: 25,
+    position: "relative",
+    shadowColor: "transparent",
+    elevation: 0,
+  },
+  avatarCircle: {
+    backgroundColor: "#E0F7FA",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    position: "absolute",
+    top: -40,
+    alignSelf: "center", // Centra el círculo automáticamente dentro del contenedor
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#001F3F",
+    shadowColor: "transparent",
+    elevation: 0,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#A9D6E5",
+  cameraIcon: {
+    position: "absolute",
+    bottom: 5,
+    right: 5,
+    backgroundColor: "#CAF0F8",
+    borderRadius: 12,
+    padding: 2,
+    borderWidth: 0,
+    borderColor: "transparent",
+  },
+  form: {
+    paddingBottom: 10,
+  },
+  inputGroup: {
     marginBottom: 20,
   },
-  input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 5,
-    color: "#FFFFFF",
-    backgroundColor: "#002B5B",
+  label: {
+    fontSize: 13,
+    color: "#0F7C99",
+    marginBottom: 6,
+    fontWeight: "600",
   },
-  textArea: {
-    height: 80,
-    textAlignVertical: "top",
+  input: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#0F7C99",
+    shadowColor: "transparent",
+    elevation: 0,
+    borderWidth: 0,
+    width: "100%", // Aumenta el ancho de los inputs al 95% del contenedor
+    alignSelf: "center", // Centra los inputs dentro del contenedor
   },
   button: {
-    backgroundColor: "#A9D6E5",
+    backgroundColor: "#0F7C99",
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 20,
   },
   buttonText: {
-    color: "#003366",
-    fontWeight: "bold",
+    color: "#FFFFFF",
     fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

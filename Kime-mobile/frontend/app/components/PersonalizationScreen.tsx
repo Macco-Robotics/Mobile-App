@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 
-type PersonalizationScreenProps = {
-  onGoBack: () => void;
-};
-
-const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack }) => {
+const PersonalizationScreen: React.FC = () => {
   const [step, setStep] = useState(1);
 
-  // Estados individuales
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
-  const [selectedAlcoholPreference, setSelectedAlcoholPreference] = useState<string | null>(null);
-  const [selectedCaffeinePreference, setSelectedCaffeinePreference] = useState<string | null>(null);
-  const [selectedActivityLevel, setSelectedActivityLevel] = useState<string | null>(null);
+  const [selectedAlcohol, setSelectedAlcohol] = useState<string | null>(null);
+  const [selectedCaffeine, setSelectedCaffeine] = useState<string | null>(null);
+  const [selectedSituation, setSelectedSituation] = useState<string | null>(null);
   const [selectedMotivation, setSelectedMotivation] = useState<string | null>(null);
   const [selectedNotifications, setSelectedNotifications] = useState<string | null>(null);
   const [selectedNotificationTypes, setSelectedNotificationTypes] = useState<string[]>([]);
@@ -34,177 +35,315 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack 
   };
 
   const handleBack = () => {
-    if (step === 1) {
-      // Si estamos en el primer paso, usar la prop onGoBack para volver al registro
-      onGoBack();
-    } else {
-      setStep((prev) => prev - 1);
-    }
+    if (step > 1) setStep((prev) => prev - 1);
   };
 
+  const renderStepTitle = (title: string) => (
+    <Text style={styles.stepTitle}>{title}</Text>
+  );
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Personalize Your Experience</Text>
+    <View style={styles.container}>
+      <Text style={styles.subtitle}>Personaliza tu experiencia</Text>
 
-      {/* Paso 1 */}
-      {step === 1 && (
-        <View>
-          <Text style={styles.question}>What flavors do you prefer in your drinks?</Text>
-          {["Sweet", "Sour / Citrusy", "Bitter", "Fruity"].map((flavor) => (
-            <TouchableOpacity
-              key={flavor}
-              style={[styles.option, selectedFlavors.includes(flavor) && styles.selectedOption]}
-              onPress={() => handleToggle(selectedFlavors, setSelectedFlavors, flavor)}
-            >
-              <Text style={styles.optionText}>{flavor}</Text>
-            </TouchableOpacity>
-          ))}
+      <View style={styles.card}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {step === 1 && (
+            <>
+              {renderStepTitle("Paso 1: Gustos y hábitos")}
 
-          <Text style={styles.question}>Do you have any alcohol restrictions?</Text>
-          {["I don't drink alcohol", "I prefer low-alcohol drinks", "I have no restrictions"].map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.option, selectedAlcoholPreference === option && styles.selectedOption]}
-              onPress={() => setSelectedAlcoholPreference(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
+              <Text style={styles.question}>¿Qué tipo de bebidas te gustan más?</Text>
+              {["Dulces", "Ácidas / Cítricas", "Amargas", "Afrutadas"].map((flavor) => (
+                <TouchableOpacity
+                  key={flavor}
+                  style={[
+                    styles.option,
+                    selectedFlavors.includes(flavor) && styles.selectedOption,
+                  ]}
+                  onPress={() => handleToggle(selectedFlavors, setSelectedFlavors, flavor)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedFlavors.includes(flavor) && styles.selectedOptionText,
+                    ]}
+                  >
+                    {flavor}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <Text style={styles.question}>¿Sueles consumir alcohol?</Text>
+              {["No, nunca", "A veces", "Sí, regularmente"].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.option,
+                    selectedAlcohol === option && styles.selectedOption,
+                  ]}
+                  onPress={() => setSelectedAlcohol(option)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedAlcohol === option && styles.selectedOptionText,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <Text style={styles.question}>¿Tomas bebidas con cafeína?</Text>
+              {["Sí, a menudo", "Solo en ciertas ocasiones", "No, las evito"].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.option,
+                    selectedCaffeine === option && styles.selectedOption,
+                  ]}
+                  onPress={() => setSelectedCaffeine(option)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedCaffeine === option && styles.selectedOptionText,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              {renderStepTitle("Paso 2: Preferencias y motivaciones")}
+
+              <Text style={styles.question}>
+                ¿En qué situación sueles tomar tus bebidas?
+              </Text>
+              {[
+                "En casa relajado",
+                "En eventos sociales",
+                "Después de hacer ejercicio",
+                "Mientras estudio o trabajo",
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.option,
+                    selectedSituation === option && styles.selectedOption,
+                  ]}
+                  onPress={() => setSelectedSituation(option)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedSituation === option && styles.selectedOptionText,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <Text style={styles.question}>¿Qué te motiva al elegir una bebida?</Text>
+              {[
+                "Innovación y probar cosas nuevas",
+                "Buscar algo saludable",
+                "Sabor familiar y seguro",
+                "Depende del momento",
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.option,
+                    selectedMotivation === option && styles.selectedOption,
+                  ]}
+                  onPress={() => setSelectedMotivation(option)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedMotivation === option && styles.selectedOptionText,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <Text style={styles.question}>¿Quieres recibir notificaciones de Kime?</Text>
+              {["Sí", "No"].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.option,
+                    selectedNotifications === option && styles.selectedOption,
+                  ]}
+                  onPress={() => setSelectedNotifications(option)}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedNotifications === option && styles.selectedOptionText,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              {renderStepTitle("Paso 3: Tipos de notificaciones")}
+
+              <Text style={styles.question}>
+                ¿Qué tipo de notificaciones te gustaría recibir?
+              </Text>
+              {[
+                "Promociones",
+                "Eventos especiales",
+                "Recomendaciones personalizadas",
+                "Nuevas bebidas disponibles",
+              ].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.option,
+                    selectedNotificationTypes.includes(type) && styles.selectedOption,
+                  ]}
+                  onPress={() =>
+                    handleToggle(
+                      selectedNotificationTypes,
+                      setSelectedNotificationTypes,
+                      type
+                    )
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      selectedNotificationTypes.includes(type) &&
+                        styles.selectedOptionText,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+        </ScrollView>
+
+        {/* Navegación */}
+        <View style={styles.navigationButtons}>
+          {step > 1 && (
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <Text style={styles.backButtonText}>Atrás</Text>
             </TouchableOpacity>
-          ))}
+          )}
+          {step < 3 ? (
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+              <Text style={styles.nextButtonText}>Siguiente ➝</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={() => console.log("Finalizar")}
+            >
+              <Text style={styles.nextButtonText}>Finalizar</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      )}
-
-      {/* Paso 2 */}
-      {step === 2 && (
-        <View>
-          <Text style={styles.question}>Do you like caffeine in your drinks?</Text>
-          {["Yes, I love it", "Only in small amounts", "No, I avoid caffeine"].map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.option, selectedCaffeinePreference === option && styles.selectedOption]}
-              onPress={() => setSelectedCaffeinePreference(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-
-          <Text style={styles.question}>What is your level of physical activity?</Text>
-          {["Sedentary", "Moderate", "Active"].map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.option, selectedActivityLevel === option && styles.selectedOption]}
-              onPress={() => setSelectedActivityLevel(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* Paso 3 */}
-      {step === 3 && (
-        <View>
-          <Text style={styles.question}>What motivates you when ordering?</Text>
-          {["Trying something new", "Familiar flavor", "Healthiest option", "Depends"].map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.option, selectedMotivation === option && styles.selectedOption]}
-              onPress={() => setSelectedMotivation(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-
-          <Text style={styles.question}>Do you want notifications from Kime?</Text>
-          {["Yes", "No"].map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.option, selectedNotifications === option && styles.selectedOption]}
-              onPress={() => setSelectedNotifications(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-
-          <Text style={styles.question}>Preferred types of notifications</Text>
-          {["Promotions", "Events", "Recommendations", "New drinks"].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[styles.option, selectedNotificationTypes.includes(type) && styles.selectedOption]}
-              onPress={() => handleToggle(selectedNotificationTypes, setSelectedNotificationTypes, type)}
-            >
-              <Text style={styles.optionText}>{type}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* Navegación */}
-      <View style={styles.navigationButtons}>
-        <TouchableOpacity style={styles.navButton} onPress={handleBack}>
-          <Text style={styles.navButtonText}>{step === 1 ? "Back to Register" : "Back"}</Text>
-        </TouchableOpacity>
-        {step < 3 ? (
-          <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-            <Text style={styles.navButtonText}>Continue</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.navButton} onPress={() => console.log("Finish")}>
-            <Text style={styles.navButtonText}>Finish</Text>
-          </TouchableOpacity>
-        )}
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 20,
+    flex: 1,
     backgroundColor: "#001F3F",
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    alignItems: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  subtitle: {
+    fontSize: 20,
     color: "#A9D6E5",
-    marginBottom: 20,
+    fontWeight: "600",
+    marginBottom: 5, // antes: 10
+  },
+  card: {
+    backgroundColor: "#CCF2F4",
+    borderRadius: 10,
+    padding: 16, // antes: 20
+    width: "100%",
+    maxWidth: 400,
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 20,
+  },
+  stepTitle: {
+    fontSize: 20,
+    color: "#003366",
     textAlign: "center",
+    marginBottom: 20,
+    fontWeight: "600",
   },
   question: {
-    fontSize: 18,
-    color: "#FFFFFF",
+    fontSize: 16,
+    color: "#003366",
     marginTop: 15,
     marginBottom: 10,
   },
   option: {
-    backgroundColor: "#003366",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#E0F7FA",
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 10,
   },
   selectedOption: {
-    backgroundColor: "#A9D6E5",
+    backgroundColor: "#00BFFF",
   },
   optionText: {
+    color: "#003366",
+    fontSize: 15,
+  },
+  selectedOptionText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontWeight: "bold",
   },
   navigationButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 30,
+    marginTop: 10,
   },
-  navButton: {
-    backgroundColor: "#A9D6E5",
-    padding: 15,
+  backButton: {
+    backgroundColor: "#CCCCCC",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
-    marginHorizontal: 10,
   },
-  navButtonText: {
+  backButtonText: {
     color: "#003366",
     fontWeight: "bold",
-    fontSize: 16,
+  },
+  nextButton: {
+    backgroundColor: "#00BFFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  nextButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
 });
 
