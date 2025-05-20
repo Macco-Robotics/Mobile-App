@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import PersonalizationScreen from "./components/PersonalizationScreen";
-import RegistrationForm from "./components/RegistrationForm";
+import RegistrationForm from "./RegistrationForm";
+import PersonalizationScreen from "./personalizationScreen";
 
 export default function App() {
   const [registrationComplete, setRegistrationComplete] = useState(false);
