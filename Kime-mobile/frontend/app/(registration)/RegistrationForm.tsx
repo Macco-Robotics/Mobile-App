@@ -8,38 +8,107 @@ import {
   View,
 } from "react-native";
 
-// ✅ Declaramos el tipo de props que el componente espera
 type RegistrationFormProps = {
   onRegistrationComplete: (data: any) => void;
 };
 
+const validateFormData = (formData: typeof initialFormData) => {
+  const newErrors: Partial<Record<keyof typeof formData, string>> = {};
+
+  if (!formData.user) {
+    newErrors.user = "El nombre de usuario es obligatorio.";
+  } else if (formData.user.length < 4 || formData.user.length > 20) {
+    newErrors.user = "Debe tener entre 4 y 20 caracteres.";
+  }
+
+  if (!formData.name) {
+    newErrors.name = "El nombre es obligatorio.";
+  } else if (formData.name.length < 2 || formData.name.length > 30) {
+    newErrors.name = "Debe tener entre 2 y 30 caracteres.";
+  }
+
+  if (!formData.lastName) {
+    newErrors.lastName = "Los apellidos son obligatorios.";
+  } else if (formData.lastName.length < 2 || formData.lastName.length > 50) {
+    newErrors.lastName = "Debe tener entre 2 y 50 caracteres.";
+  }
+
+  if (!formData.email) {
+    newErrors.email = "El correo electrónico es obligatorio.";
+  } else {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      newErrors.email = "El correo electrónico no es válido.";
+    }
+  }
+
+  if (!formData.password) {
+    newErrors.password = "La contraseña es obligatoria.";
+  } else if (formData.password.length < 6 || formData.password.length > 50) {
+    newErrors.password = "Debe tener entre 6 y 50 caracteres.";
+  }
+
+  if (!formData.address) {
+    newErrors.address = "La dirección es obligatoria.";
+  } else if (formData.address.length < 5 || formData.address.length > 100) {
+    newErrors.address = "Debe tener entre 5 y 100 caracteres.";
+  }
+
+  if (!formData.postalCode) {
+    newErrors.postalCode = "El código postal es obligatorio.";
+  } else if (formData.postalCode.length < 5 || formData.postalCode.length > 10) {
+    newErrors.postalCode = "Debe tener entre 5 y 10 caracteres.";
+  }
+
+  if (!formData.phone) {
+    newErrors.phone = "El teléfono es obligatorio.";
+  } else {
+    const phoneRegex = /^\d{9,15}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Debe tener entre 9 y 15 dígitos numéricos.";
+    }
+  }
+
+  return newErrors;
+};
+
+const initialFormData = {
+  user: "",
+  name: "",
+  lastName: "",
+  email: "",
+  password: "",
+  address: "",
+  postalCode: "",
+  phone: "",
+  description: "",
+};
+
 const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
-  const [formData, setFormData] = useState({
-    user: "",
-    name: "",
-    lastName: "",
-    email: "",
-    password: "",
-    address: "",
-    postalCode: "",
-    phone: "",
-    description: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
 
   const handleChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
   };
 
   const handleContinue = () => {
-    // Aquí podrías hacer validaciones si quieres
-    onRegistrationComplete(formData); 
+    const newErrors = validateFormData(formData);
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onRegistrationComplete(formData);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View>
         <Text style={styles.title}>Registro de Usuario</Text>
-        
+
         <TextInput
           style={styles.input}
           placeholder="Nombre de usuario"
@@ -47,6 +116,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.user}
           onChangeText={(value) => handleChange("user", value)}
         />
+        {errors.user && <Text style={styles.errorText}>{errors.user}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Nombre"
@@ -54,6 +125,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.name}
           onChangeText={(value) => handleChange("name", value)}
         />
+        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Apellidos"
@@ -61,6 +134,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.lastName}
           onChangeText={(value) => handleChange("lastName", value)}
         />
+        {errors.lastName && <Text style={styles.errorText}>{errors.lastName}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -68,6 +143,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.email}
           onChangeText={(value) => handleChange("email", value)}
         />
+        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
@@ -76,6 +153,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.password}
           onChangeText={(value) => handleChange("password", value)}
         />
+        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Dirección"
@@ -83,6 +162,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.address}
           onChangeText={(value) => handleChange("address", value)}
         />
+        {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Código Postal"
@@ -90,6 +171,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.postalCode}
           onChangeText={(value) => handleChange("postalCode", value)}
         />
+        {errors.postalCode && <Text style={styles.errorText}>{errors.postalCode}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Teléfono"
@@ -97,6 +180,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           value={formData.phone}
           onChangeText={(value) => handleChange("phone", value)}
         />
+        {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Descripción"
@@ -154,6 +239,12 @@ const styles = StyleSheet.create({
     color: "#003366",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  errorText: {
+    color: "#FF6B6B",
+    marginTop: -10,
+    marginBottom: 10,
+    fontSize: 14,
   },
 });
 

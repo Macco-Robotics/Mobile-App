@@ -105,7 +105,6 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Personalize Your Experience</Text>
 
-      {/* Paso 1 */}
       {step === 1 && (
         <View>
           <Text style={styles.question}>What flavors do you prefer in your drinks?</Text>
@@ -132,7 +131,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
         </View>
       )}
 
-      {/* Paso 2 */}
+      
       {step === 2 && (
         <View>
           <Text style={styles.question}>Do you like caffeine in your drinks?</Text>
@@ -159,7 +158,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
         </View>
       )}
 
-      {/* Paso 3 */}
+      
       {step === 3 && (
         <View>
           <Text style={styles.question}>What motivates you when ordering?</Text>
@@ -197,7 +196,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
         </View>
       )}
 
-      {/* Navegación */}
+      
       <View style={styles.navigationButtons}>
         <TouchableOpacity style={styles.navButton} onPress={handleBack}>
           <Text style={styles.navButtonText}>{step === 1 ? "Back to Register" : "Back"}</Text>
