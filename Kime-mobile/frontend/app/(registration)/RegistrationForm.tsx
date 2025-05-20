@@ -106,7 +106,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View>
+      <View style={styles.formContainer}>
         <Text style={styles.title}>Registro de Usuario</Text>
 
         <TextInput
@@ -204,9 +204,12 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "stretch", // Permite que los hijos ocupen todo el ancho
     padding: 20,
     backgroundColor: "#001F3F",
+  },
+  formContainer: {
+    width: "100%", // Asegura que el View padre llene el ancho
   },
   title: {
     fontSize: 24,
