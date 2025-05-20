@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
-  ScrollView,
+  View,
 } from "react-native";
 
 // ✅ Declaramos el tipo de props que el componente espera
 type RegistrationFormProps = {
-    onRegistrationComplete: () => void;
-  };
-  
-  const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
+  onRegistrationComplete: (data: any) => void;
+};
+
+const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
   const [formData, setFormData] = useState({
+    user: "",
     name: "",
     lastName: "",
     email: "",
@@ -31,14 +32,21 @@ type RegistrationFormProps = {
 
   const handleContinue = () => {
     // Aquí podrías hacer validaciones si quieres
-    onRegistrationComplete(); // ✅ Llama al callback que te lleva a la pantalla de personalización
+    onRegistrationComplete(formData); 
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View>
         <Text style={styles.title}>Registro de Usuario</Text>
-
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre de usuario"
+          placeholderTextColor="#A9D6E5"
+          value={formData.user}
+          onChangeText={(value) => handleChange("user", value)}
+        />
         <TextInput
           style={styles.input}
           placeholder="Nombre"
