@@ -1,6 +1,7 @@
+// app/index.tsx
 import React from "react";
 import { StyleSheet, View, Image } from "react-native";
-import App from "./app"; // importa el componente que maneja la navegación
+import App from "./(registration)/register-loginController";
 
 export default function HomeScreen() {
   return (
@@ -20,8 +21,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     backgroundColor: "#001F3F",
     padding: 24,
   },
@@ -30,7 +29,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     maxWidth: 960,
-    marginHorizontal: "auto",
   },
   logo: {
     width: 200,
