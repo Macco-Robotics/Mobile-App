@@ -1,6 +1,6 @@
 // app/index.tsx
 import React from "react";
-import { StyleSheet, View, Image } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import App from "./(registration)/register-loginController";
 
 export default function HomeScreen() {
