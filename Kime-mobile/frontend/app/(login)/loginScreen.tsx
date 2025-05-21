@@ -1,128 +1,149 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
+import React from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 
-type LoginScreenProps = {
-  onLoginSuccess: (token: string) => void;
-  onGoToRegister: () => void;
-};
+interface LoginScreenProps {
+  onRegisterPress: () => void;
+}
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegister }) => {
-  const [userOrEmail, setUserOrEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
-    if (!userOrEmail || !password) {
-      Alert.alert("Error", "Por favor ingresa usuario/email y contraseña");
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identifier: userOrEmail,
-          password: password,
-        }),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        // Suponemos que el backend devuelve un token
-        onLoginSuccess(result.token);
-      } else {
-        Alert.alert("Error de autenticación", result.message || "Usuario o contraseña incorrectos");
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Error de red o servidor");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const LoginScreen: React.FC<LoginScreenProps> = ({ onRegisterPress }) => {
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>Iniciar Sesión</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Usuario o Email"
-        placeholderTextColor="#A9D6E5"
-        autoCapitalize="none"
-        value={userOrEmail}
-        onChangeText={setUserOrEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor="#A9D6E5"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Cargando..." : "Entrar"}</Text>
-      </TouchableOpacity>
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>¿No tienes cuenta?</Text>
-        <TouchableOpacity onPress={onGoToRegister}>
-          <Text style={styles.linkText}> Regístrate</Text>
+    <View style={styles.wrapper}>
+      <View style={styles.cardContainer}> {/* Contenedor hasta botón de login */}
+        <Text style={styles.label}>Usuario</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="SampleDomain"
+          placeholderTextColor="#ccc"
+        />
+
+        <Text style={styles.label}>Contraseña</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="SampleDomain"
+          placeholderTextColor="#ccc"
+          secureTextEntry
+        />
+
+        <Text style={styles.forgotPassword}>¿Has olvidado la contraseña?</Text>
+
+        <TouchableOpacity style={styles.loginButton}>
+          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      {/* Fuera del contenedor visual */}
+      <Text style={styles.socialText}>- Inicia sesión con -</Text>
+
+      <View style={styles.socialContainer}>
+        <TouchableOpacity style={styles.socialCircle}>
+          <FontAwesome name="google" size={24} color="#DB4437" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.socialCircle}>
+          <FontAwesome name="instagram" size={24} color="#C13584" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.socialCircle}>
+          <FontAwesome name="facebook" size={24} color="#4267B2" />
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.registerText}>
+        ¿No tienes una cuenta?{' '}
+        <Text style={styles.registerLink} onPress={onRegisterPress}>
+          Regístrate
+        </Text>
+      </Text>
+    </View>
   );
 };
 
+export default LoginScreen;
+
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+  wrapper: {
+    flex: 1,
     backgroundColor: "#001F3F",
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#A9D6E5",
-    marginBottom: 30,
+  cardContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  label: {
+    color: '#00B7EB',
+    marginTop: 10,
+    marginBottom: 5,
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
   },
   input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 5,
-    color: "#FFFFFF",
-    backgroundColor: "#002B5B",
+    backgroundColor: '#DCEBFB',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    width: '100%',
+    color: '#000',
   },
-  button: {
-    backgroundColor: "#A9D6E5",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
-    width: "100%",
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    color: '#666',
     marginBottom: 20,
+    fontSize: 12,
   },
-  buttonText: {
-    color: "#003366",
-    fontWeight: "bold",
+  loginButton: {
+    backgroundColor: '#00B7EB',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '100%',
+  },
+  loginButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
     fontSize: 16,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
+  socialText: {
+    color: '#FFF',
+    marginBottom: 10,
+    alignSelf: 'center',
   },
-  footerText: {
-    color: "#FFFFFF",
-    fontSize: 14,
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 20,
   },
-  linkText: {
-    color: "#A9D6E5",
-    fontSize: 14,
-    fontWeight: "bold",
+  socialCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  
+  registerText: {
+    color: '#FFF',
+    alignSelf: 'center',
+  },
+  registerLink: {
+    color: '#00B7EB',
+    fontWeight: 'bold',
   },
 });
-
-export default LoginScreen;
