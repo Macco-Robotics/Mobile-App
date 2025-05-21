@@ -18,7 +18,7 @@ const questionnaireSchema = new mongoose.Schema({
   caffeinePreferences: {
     type: String, 
     enum: [
-      "Yes, I love it.",
+      "Yes, I love it",
       "Only small amounts",
       "No, I avoid caffeine"
     ],
