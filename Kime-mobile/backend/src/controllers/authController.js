@@ -1,8 +1,8 @@
-import User from '../models/user.js';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import dotenv from "dotenv";
-dotenv.config(); 
+import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
+dotenv.config();
 
 export const register = async (req, res) => {
   const {
@@ -15,7 +15,8 @@ export const register = async (req, res) => {
     phone_number,
     image,
     role,
-    description
+    description,
+    questionnaire
   } = req.body;
 
   try {
@@ -27,6 +28,11 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const sanitizedQuestionnaire = questionnaire || {};
+    if (sanitizedQuestionnaire.wantsNotifications === false) {
+      sanitizedQuestionnaire.notificationTypes = [];
+    }
+
     const newUser = new User({
       user,
       password: hashedPassword,
@@ -37,7 +43,8 @@ export const register = async (req, res) => {
       phone_number,
       image,
       role: role || 'user',
-      description
+      description,
+      questionnaire: sanitizedQuestionnaire
     });
 
     await newUser.save();

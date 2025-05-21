@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  View,
-  Text,
-  FlatList,
   ActivityIndicator,
   Dimensions,
+  FlatList,
   Image,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 type MenuItem = {

@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
 import { Ionicons, MaterialIcons, Entypo, FontAwesome5 } from '@expo/vector-icons';
 
-// Navbar manual con espacio de click mejorado
+// Navbar manual con espacio de click y espaciado mejorados
 export default function Navbar() {
   const router = useRouter();
   const segments = useSegments();
@@ -50,11 +50,16 @@ export default function Navbar() {
       <View style={styles.navbar}>
         {tabs.map((tab) => {
           const focused = active === tab.name;
+          const onPress = () => {
+            // push to root for home
+            router.push(tab.isMiddle ? '/' : `/${tab.name}`);
+          };
+
           if (tab.isMiddle) {
             return (
               <TouchableOpacity
                 key={tab.name}
-                onPress={() => router.push('/')}
+                onPress={onPress}
                 style={styles.middleButton}
                 hitSlop={defaultHitSlop}
               >
@@ -62,11 +67,17 @@ export default function Navbar() {
               </TouchableOpacity>
             );
           }
+
+          // añadir espaciado extra a crear-bebida e historial
+          const extraStyle = (tab.name === 'crear-bebida' || tab.name === 'historial')
+            ? styles.sideSpacing
+            : {};
+
           return (
             <TouchableOpacity
               key={tab.name}
-              onPress={() => router.push(`/${tab.name}`)}
-              style={styles.tabButton}
+              onPress={onPress}
+              style={[styles.tabButton, extraStyle]}
               hitSlop={defaultHitSlop}
             >
               {tab.icon(focused)}
@@ -105,9 +116,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  sideSpacing: {
+    marginHorizontal: 30,
+  },
   middleButton: {
     position: 'absolute',
-    top: -20,
+    top: -30, // elevar más el botón central
     backgroundColor: '#2f95dc',
     width: 70,
     height: 70,

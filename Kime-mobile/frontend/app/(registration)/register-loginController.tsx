@@ -1,24 +1,25 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
 import RegistrationForm from "./RegistrationForm";
 import PersonalizationScreen from "./personalizationScreen";
 
-export default function App() {
-  const [registrationComplete, setRegistrationComplete] = useState(false);
+const RegisterLoginController = () => {
+  const [step, setStep] = useState<"register" | "personalize">("register");
+  const [userData, setUserData] = useState<any>(null);
 
-  return (
-    <View style={styles.container}>
-      {!registrationComplete ? (
-        <RegistrationForm onRegistrationComplete={() => setRegistrationComplete(true)} />
-      ) : (
-        <PersonalizationScreen onGoBack={() => setRegistrationComplete(false)} />
-      )}
-    </View>
+  const handleRegistrationComplete = (data: any) => {
+    setUserData(data);
+    setStep("personalize");
+  };
+
+  const handleGoBack = () => {
+    setStep("register");
+  };
+
+  return step === "register" ? (
+    <RegistrationForm onRegistrationComplete={handleRegistrationComplete} />
+  ) : (
+    <PersonalizationScreen userData={userData} onGoBack={handleGoBack} />
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+export default RegisterLoginController;

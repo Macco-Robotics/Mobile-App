@@ -1,11 +1,22 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type PersonalizationScreenProps = {
   onGoBack: () => void;
+  userData: {
+    user: string;
+    name: string;
+    lastName: string;
+    email: string;
+    password: string;
+    address: string;
+    postalCode: string;
+    phone: string;
+    description: string;
+  }
 };
 
-const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack }) => {
+const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack, userData }) => {
   const [step, setStep] = useState(1);
 
   // Estados individuales
@@ -42,11 +53,58 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack 
     }
   };
 
+  const handleRegister = async (req, res) => {
+    const questionnaire = {
+      flavourPreferences: selectedFlavors,
+      alcoholRestriction: selectedAlcoholPreference,
+      caffeinePreferences: selectedCaffeinePreference,
+      physicalActivityLevel: selectedActivityLevel,
+      orderMotivation: selectedMotivation,
+      wantsNotifications: selectedNotifications === "Yes",
+      notificationTypes: selectedNotificationTypes
+    };
+
+    const payload = {
+      user: userData.user,
+      password: userData.password,
+      name: userData.name,
+      surname: userData.lastName,
+      email: userData.email,
+      postal_code: userData.postalCode,
+      phone_number: userData.phone,
+      image: "",
+      role: 'user',
+      description: userData.description,
+      questionnaire
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        alert('Usuario registrado correctamente');
+      } else {
+        const error = await response.json();
+        console.log(error);
+        alert('Error: ' + error.message);
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert('Error de red o servidor');
+    }
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Personalize Your Experience</Text>
 
-      {/* Paso 1 */}
       {step === 1 && (
         <View>
           <Text style={styles.question}>What flavors do you prefer in your drinks?</Text>
@@ -73,7 +131,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack 
         </View>
       )}
 
-      {/* Paso 2 */}
+      
       {step === 2 && (
         <View>
           <Text style={styles.question}>Do you like caffeine in your drinks?</Text>
@@ -100,7 +158,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack 
         </View>
       )}
 
-      {/* Paso 3 */}
+      
       {step === 3 && (
         <View>
           <Text style={styles.question}>What motivates you when ordering?</Text>
@@ -138,7 +196,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack 
         </View>
       )}
 
-      {/* Navegación */}
+      
       <View style={styles.navigationButtons}>
         <TouchableOpacity style={styles.navButton} onPress={handleBack}>
           <Text style={styles.navButtonText}>{step === 1 ? "Back to Register" : "Back"}</Text>
@@ -148,7 +206,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack 
             <Text style={styles.navButtonText}>Continue</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.navButton} onPress={() => console.log("Finish")}>
+          <TouchableOpacity style={styles.navButton} onPress={handleRegister}>
             <Text style={styles.navButtonText}>Finish</Text>
           </TouchableOpacity>
         )}
