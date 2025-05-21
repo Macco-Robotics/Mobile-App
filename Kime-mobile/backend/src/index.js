@@ -2,6 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import { connectDB } from './db/conn.js';
+import menuRoutes from './routes/menuRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Backend funcionando correctamente');
 });
+
+app.use('/api/menu', menuRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
