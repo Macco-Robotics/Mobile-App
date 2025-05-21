@@ -76,60 +76,104 @@ const LoginScreen: React.FC = () => {
           <Text style={styles.linkText}> Regístrate</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      <Text style={styles.registerText}>
+        ¿No tienes una cuenta?{' '}
+        <Text style={styles.registerLink} onPress={onRegisterPress}>
+          Regístrate
+        </Text>
+      </Text>
+    </View>
   );
 };
 
+export default LoginScreen;
+
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+  wrapper: {
+    flex: 1,
     backgroundColor: "#001F3F",
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#A9D6E5",
-    marginBottom: 30,
+  cardContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  label: {
+    color: '#00B7EB',
+    marginTop: 10,
+    marginBottom: 5,
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
   },
   input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 5,
-    color: "#FFFFFF",
-    backgroundColor: "#002B5B",
+    backgroundColor: '#DCEBFB',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    width: '100%',
+    color: '#000',
   },
-  button: {
-    backgroundColor: "#A9D6E5",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
-    width: "100%",
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    color: '#666',
     marginBottom: 20,
+    fontSize: 12,
   },
-  buttonText: {
-    color: "#003366",
-    fontWeight: "bold",
+  loginButton: {
+    backgroundColor: '#00B7EB',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '100%',
+  },
+  loginButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
     fontSize: 16,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
+  socialText: {
+    color: '#FFF',
+    marginBottom: 10,
+    alignSelf: 'center',
   },
-  footerText: {
-    color: "#FFFFFF",
-    fontSize: 14,
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 20,
   },
-  linkText: {
-    color: "#A9D6E5",
-    fontSize: 14,
-    fontWeight: "bold",
+  socialCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  
+  registerText: {
+    color: '#FFF',
+    alignSelf: 'center',
+  },
+  registerLink: {
+    color: '#00B7EB',
+    fontWeight: 'bold',
   },
 });
-
-export default LoginScreen;
