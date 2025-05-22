@@ -6,6 +6,7 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -24,8 +25,10 @@ const cardWidth = (screenWidth - cardMargin * (numColumns + 1)) / numColumns;
 const cardHeight = 200;
 
 export default function MenuCatalog() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]); // Todos los elementos del menú
+  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]); // Elementos filtrados
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState(""); // Texto de búsqueda
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -33,6 +36,7 @@ export default function MenuCatalog() {
         const response = await fetch("http://localhost:3000/api/menu");
         const data = await response.json();
         setMenuItems(data);
+        setFilteredItems(data); // Inicialmente, los elementos filtrados son todos los elementos
       } catch (error) {
         console.error("Error fetching menu:", error);
       } finally {
@@ -42,6 +46,19 @@ export default function MenuCatalog() {
 
     fetchMenu();
   }, []);
+
+  // Filtrar los elementos del menú en función del texto de búsqueda
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+    if (text === "") {
+      setFilteredItems(menuItems); // Si no hay texto, muestra todos los elementos
+    } else {
+      const filtered = menuItems.filter((item) =>
+        item.display_name.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    }
+  };
 
   const renderItem = ({ item }: { item: MenuItem }) => (
     <View style={styles.card}>
@@ -63,14 +80,26 @@ export default function MenuCatalog() {
   }
 
   return (
-    <FlatList
-      data={menuItems}
-      keyExtractor={(item) => item._id}
-      renderItem={renderItem}
-      numColumns={numColumns}
-      contentContainerStyle={styles.list}
-      showsVerticalScrollIndicator={false}
-    />
+    <View style={{ flex: 1 }}>
+      {/* Barra de búsqueda */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Buscar en el catálogo..."
+        placeholderTextColor="#aaa"
+        value={searchText}
+        onChangeText={handleSearch}
+      />
+
+      {/* Lista de elementos */}
+      <FlatList
+        data={filteredItems}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        numColumns={numColumns}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 }
 
@@ -117,5 +146,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 16,
     textAlign: "center",
+  },
+  searchBar: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    margin: 10,
+    color: "#333",
   },
 });
