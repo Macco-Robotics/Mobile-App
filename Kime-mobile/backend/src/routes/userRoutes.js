@@ -1,11 +1,11 @@
 import express from 'express';
 import {
-  registerUser,
-  loginUser,
   getProfile,
+  loginUser,
+  registerUser,
   updateProfile
 } from '../controllers/userController.js';
-import { authMiddleware, authorizeRoles } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 

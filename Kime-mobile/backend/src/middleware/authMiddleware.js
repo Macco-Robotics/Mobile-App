@@ -1,6 +1,6 @@
+import dotenv from "dotenv";
 import jwt from 'jsonwebtoken';
 import { AUTH_HEADER_KEY, BEARER_PREFIX } from '../const/auth.js';
-import dotenv from "dotenv";
 dotenv.config(); 
 
 export const authMiddleware = (req, res, next) => {
