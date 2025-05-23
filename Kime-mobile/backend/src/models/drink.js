@@ -1,0 +1,16 @@
+import mongoose from "mongoose";
+
+const drinkSchema = mongoose.Schema({
+    name: {type: String, required: true},
+    description: {type: String},
+    image: {type: String, required: true},
+    type: {type: String, enum:['Cóctel', 'Smoothie', 'Infusión', 'Zumo', 'Bebida energética', 'Refresco'], required: true},
+    ingredientIds: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ingredient'}],
+    creator: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}, 
+    likes: {type: Number, default: 0},
+    createdAt: {type: Date, default: Date.now}
+});
+
+const Drink = mongoose.model('Drink', drinkSchema);
+
+export default Drink;
