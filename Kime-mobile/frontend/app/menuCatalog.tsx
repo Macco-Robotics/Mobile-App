@@ -1,14 +1,15 @@
-// MenuCatalog.tsx
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
   StyleSheet,
   Text,
   TextInput,
   View,
+  Button,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import { filterMenus } from "../utils/filterMenus";
 
 type MenuItem = {
   _id: string;
@@ -16,59 +17,69 @@ type MenuItem = {
   description: string;
   price_value: number;
   price_currency: string;
+  type: string; // Tipo de bebida (ejemplo: "Café", "Té", "Jugo")
+  recipe: { name: string; quantity: number; unit?: string }[]; // Lista de ingredientes en la receta
 };
 
-const numColumns = 3;
-const screenWidth = Dimensions.get("window").width;
-const cardMargin = 10;
-const cardWidth = (screenWidth - cardMargin * (numColumns + 1)) / numColumns;
-const cardHeight = 200;
-
 export default function MenuCatalog() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]); // Todos los elementos del menú
-  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]); // Elementos filtrados
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchText, setSearchText] = useState(""); // Texto de búsqueda
+  const [searchText, setSearchText] = useState("");
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
+  const [types, setTypes] = useState<string[]>([]);
+  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [numColumns, setNumColumns] = useState(2); // Número de columnas dinámico
 
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchMenuAndIngredients = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/menu");
-        const data = await response.json();
-        setMenuItems(data);
-        setFilteredItems(data); // Inicialmente, los elementos filtrados son todos los elementos
+        const menuResponse = await fetch("http://localhost:3000/api/menu");
+        const menuData = await menuResponse.json();
+        setMenuItems(menuData);
+        setFilteredItems(menuData);
+
+        const uniqueTypes = Array.from(new Set(menuData.map((item: MenuItem) => item.type)));
+        setTypes(uniqueTypes);
+
+        const ingredientsResponse = await fetch("http://localhost:3000/api/ingredients");
+        const ingredientsData = await ingredientsResponse.json();
+        const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
+        setIngredients(uniqueIngredients);
       } catch (error) {
-        console.error("Error fetching menu:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMenu();
+    fetchMenuAndIngredients();
   }, []);
 
-  // Filtrar los elementos del menú en función del texto de búsqueda
-  const handleSearch = (text: string) => {
-    setSearchText(text);
-    if (text === "") {
-      setFilteredItems(menuItems); // Si no hay texto, muestra todos los elementos
-    } else {
-      const filtered = menuItems.filter((item) =>
-        item.display_name.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredItems(filtered);
+  useEffect(() => {
+    // Si no hay filtros seleccionados, mostrar todos los elementos
+    if (!selectedType && !selectedIngredient && !searchText) {
+      setFilteredItems(menuItems);
+      return;
     }
+
+    // Aplicar filtros
+    const filtered = filterMenus(menuItems, searchText, selectedType, selectedIngredient);
+    setFilteredItems(filtered);
+  }, [menuItems, searchText, selectedType, selectedIngredient]);
+
+  const clearFilters = () => {
+    setSearchText(""); // Limpiar texto de búsqueda
+    setSelectedType(null); // Volver a "Todos los tipos"
+    setSelectedIngredient(null); // Volver a "Todos los ingredientes"
+    setFilteredItems(menuItems); // Mostrar todos los elementos
   };
 
   const renderItem = ({ item }: { item: MenuItem }) => (
     <View style={styles.card}>
-      <View style={styles.imagePlaceholder} />
-      <Text style={styles.name} numberOfLines={1}>
-        {item.display_name}
-      </Text>
-      <Text style={styles.description} numberOfLines={3}>
-        {item.description}
-      </Text>
+      <Text style={styles.name}>{item.display_name}</Text>
+      <Text style={styles.description}>{item.description}</Text>
       <Text style={styles.price}>
         {item.price_value} {item.price_currency}
       </Text>
@@ -81,79 +92,108 @@ export default function MenuCatalog() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Barra de búsqueda */}
       <TextInput
         style={styles.searchBar}
         placeholder="Buscar en el catálogo..."
         placeholderTextColor="#aaa"
         value={searchText}
-        onChangeText={handleSearch}
+        onChangeText={setSearchText}
       />
 
-      {/* Lista de elementos */}
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
-        numColumns={numColumns}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      <Picker
+        selectedValue={selectedType}
+        onValueChange={(value) => setSelectedType(value)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Todos los tipos" value={null} />
+        {types.map((type) => (
+          <Picker.Item key={type} label={type} value={type} />
+        ))}
+      </Picker>
+
+      <Picker
+        selectedValue={selectedIngredient}
+        onValueChange={(value) => setSelectedIngredient(value)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Todos los ingredientes" value={null} />
+        {ingredients.map((ingredient) => (
+          <Picker.Item key={ingredient} label={ingredient} value={ingredient} />
+        ))}
+      </Picker>
+
+      {/* Botón para limpiar filtros */}
+      <View style={styles.clearFiltersContainer}>
+        <Button title="Limpiar filtros" onPress={clearFilters} />
+      </View>
+
+      {filteredItems.length === 0 ? (
+        <View style={styles.noResults}>
+          <Text style={styles.noResultsText}>No se han encontrado resultados para tu búsqueda.</Text>
+        </View>
+      ) : (
+        <FlatList
+          key={numColumns} // Forzar un nuevo renderizado cuando cambie numColumns
+          data={filteredItems}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+          numColumns={numColumns}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      {/* Botón para limpiar filtros al final */}
+      <View style={styles.clearFiltersContainer}>
+        <Button title="Limpiar filtros" onPress={clearFilters} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  list: {
-    paddingHorizontal: cardMargin / 2,
-    paddingBottom: 30,
+  searchBar: {
+    backgroundColor: "#fff",
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+  },
+  picker: {
+    margin: 10,
+    backgroundColor: "#fff",
   },
   card: {
+    padding: 10,
+    margin: 10,
     backgroundColor: "#003366",
-    borderRadius: 14,
-    margin: cardMargin / 2,
-    width: cardWidth,
-    height: cardHeight,
-    padding: 14,
-    justifyContent: "flex-start",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  imagePlaceholder: {
-    backgroundColor: "#123955",
-    height: 70,
-    borderRadius: 10,
-    marginBottom: 10,
+    borderRadius: 5,
   },
   name: {
     color: "#fff",
-    fontSize: 17,
-    fontWeight: "700",
-    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   description: {
     color: "#ccc",
-    fontSize: 13,
-    marginVertical: 8,
-    textAlign: "center",
-    flexShrink: 1,
+    fontSize: 14,
   },
   price: {
     color: "#fff",
-    fontWeight: "700",
     fontSize: 16,
-    textAlign: "center",
+    fontWeight: "bold",
   },
-  searchBar: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+  noResults: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noResultsText: {
     fontSize: 16,
+    color: "#FF0000", // Cambiado a rojo para mayor visibilidad
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  clearFiltersContainer: {
     margin: 10,
-    color: "#333",
   },
 });
