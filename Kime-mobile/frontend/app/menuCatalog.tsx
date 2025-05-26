@@ -17,8 +17,8 @@ type MenuItem = {
   description: string;
   price_value: number;
   price_currency: string;
-  type: string; // Tipo de bebida (ejemplo: "Café", "Té", "Jugo")
-  recipe: { name: string; quantity: number; unit?: string }[]; // Lista de ingredientes en la receta
+  type: string;
+  recipe: { name: string; quantity: number; unit?: string }[];
 };
 
 export default function MenuCatalog() {
@@ -26,11 +26,11 @@ export default function MenuCatalog() {
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string>(""); // valor inicial vacío
+  const [selectedIngredient, setSelectedIngredient] = useState<string>(""); // valor inicial vacío
   const [types, setTypes] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
-  const [numColumns, setNumColumns] = useState(2); // Número de columnas dinámico
+  const [numColumns, setNumColumns] = useState(2);
 
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
@@ -58,22 +58,15 @@ export default function MenuCatalog() {
   }, []);
 
   useEffect(() => {
-    // Si no hay filtros seleccionados, mostrar todos los elementos
-    if (!selectedType && !selectedIngredient && !searchText) {
-      setFilteredItems(menuItems);
-      return;
-    }
-
-    // Aplicar filtros
     const filtered = filterMenus(menuItems, searchText, selectedType, selectedIngredient);
     setFilteredItems(filtered);
   }, [menuItems, searchText, selectedType, selectedIngredient]);
 
   const clearFilters = () => {
-    setSearchText(""); // Limpiar texto de búsqueda
-    setSelectedType(null); // Volver a "Todos los tipos"
-    setSelectedIngredient(null); // Volver a "Todos los ingredientes"
-    setFilteredItems(menuItems); // Mostrar todos los elementos
+    setSearchText("");
+    setSelectedType("");
+    setSelectedIngredient("");
+    setFilteredItems(menuItems);
   };
 
   const renderItem = ({ item }: { item: MenuItem }) => (
@@ -105,7 +98,7 @@ export default function MenuCatalog() {
         onValueChange={(value) => setSelectedType(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Todos los tipos" value={null} />
+        <Picker.Item label="Todos los tipos" value="" />
         {types.map((type) => (
           <Picker.Item key={type} label={type} value={type} />
         ))}
@@ -116,13 +109,12 @@ export default function MenuCatalog() {
         onValueChange={(value) => setSelectedIngredient(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Todos los ingredientes" value={null} />
+        <Picker.Item label="Todos los ingredientes" value="" />
         {ingredients.map((ingredient) => (
           <Picker.Item key={ingredient} label={ingredient} value={ingredient} />
         ))}
       </Picker>
 
-      {/* Botón para limpiar filtros */}
       <View style={styles.clearFiltersContainer}>
         <Button title="Limpiar filtros" onPress={clearFilters} />
       </View>
@@ -133,7 +125,7 @@ export default function MenuCatalog() {
         </View>
       ) : (
         <FlatList
-          key={numColumns} // Forzar un nuevo renderizado cuando cambie numColumns
+          key={numColumns}
           data={filteredItems}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
@@ -143,7 +135,6 @@ export default function MenuCatalog() {
         />
       )}
 
-      {/* Botón para limpiar filtros al final */}
       <View style={styles.clearFiltersContainer}>
         <Button title="Limpiar filtros" onPress={clearFilters} />
       </View>
@@ -163,6 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   card: {
+    flex: 1,
     padding: 10,
     margin: 10,
     backgroundColor: "#003366",
@@ -189,7 +181,7 @@ const styles = StyleSheet.create({
   },
   noResultsText: {
     fontSize: 16,
-    color: "#FF0000", // Cambiado a rojo para mayor visibilidad
+    color: "#FF0000",
     fontWeight: "bold",
     marginBottom: 10,
   },

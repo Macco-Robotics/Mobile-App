@@ -4,8 +4,8 @@ type MenuItem = {
   description: string;
   price_value: number;
   price_currency: string;
-  type: string; // Tipo de bebida (ejemplo: "Café", "Té", "Jugo")
-  recipe: { name: string; quantity: number; unit?: string }[]; // Lista de ingredientes en la receta
+  type: string;
+  recipe: { name: string; quantity: number; unit?: string }[];
 };
 
 /**
@@ -19,14 +19,9 @@ type MenuItem = {
 export const filterMenus = (
   menuItems: MenuItem[],
   searchText: string,
-  selectedType: string | null,
-  selectedIngredient: string | null
+  selectedType: string,
+  selectedIngredient: string
 ): MenuItem[] => {
-  // Si no hay filtros seleccionados, devolver todos los elementos
-  if (!searchText && !selectedType && !selectedIngredient) {
-    return menuItems;
-  }
-
   let filtered = menuItems;
 
   // Filtrar por texto de búsqueda
@@ -36,20 +31,18 @@ export const filterMenus = (
     );
   }
 
-  // Filtrar por tipo de bebida
-  if (selectedType) {
+  // Filtrar por tipo de bebida (si se seleccionó alguno)
+  if (selectedType && selectedType !== "") {
     filtered = filtered.filter((item) => item.type === selectedType);
   }
 
-  // Filtrar por ingrediente seleccionado
-  if (selectedIngredient) {
-    filtered = filtered.filter(
-      (item) =>
-        item.recipe &&
-        item.recipe.some(
-          (ingredient) =>
-            ingredient.name.trim().toLowerCase() === selectedIngredient.trim().toLowerCase()
-        )
+  // Filtrar por ingrediente (si se seleccionó alguno)
+  if (selectedIngredient && selectedIngredient !== "") {
+    filtered = filtered.filter((item) =>
+      item.recipe.some(
+        (ingredient) =>
+          ingredient.name.trim().toLowerCase() === selectedIngredient.trim().toLowerCase()
+      )
     );
   }
 
