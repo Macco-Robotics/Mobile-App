@@ -8,6 +8,7 @@ const drinkSchema = mongoose.Schema({
     ingredientIds: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ingredient'}],
     creator: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}, 
     likes: {type: Number, default: 0},
+    isPublic: {type: Boolean, default:false},
     createdAt: {type: Date, default: Date.now}
 });
 
