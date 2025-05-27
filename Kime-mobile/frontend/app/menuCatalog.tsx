@@ -1,4 +1,3 @@
-// MenuCatalog.tsx
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -7,7 +6,9 @@ import {
   StyleSheet,
   Text,
   View,
+  TouchableOpacity, // <-- añadido
 } from "react-native";
+import { useRouter } from "expo-router"; // <-- añadido
 
 type MenuItem = {
   _id: string;
@@ -26,6 +27,7 @@ const cardHeight = 200;
 export default function MenuCatalog() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter(); // <-- añadido
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -44,7 +46,10 @@ export default function MenuCatalog() {
   }, []);
 
   const renderItem = ({ item }: { item: MenuItem }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/bebida/${item._id}`)} // <-- navegación añadida
+    >
       <View style={styles.imagePlaceholder} />
       <Text style={styles.name} numberOfLines={1}>
         {item.display_name}
@@ -55,7 +60,7 @@ export default function MenuCatalog() {
       <Text style={styles.price}>
         {item.price_value} {item.price_currency}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {
