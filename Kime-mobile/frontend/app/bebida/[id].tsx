@@ -1,6 +1,14 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 type Bebida = {
   _id: string;
@@ -11,18 +19,19 @@ type Bebida = {
   price_value: number;
   price_currency: string;
   quantity_available: number;
-  recipe: string;
+  recipe: any;
 };
 
 export default function BebidaDetalle() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const [bebida, setBebida] = useState<Bebida | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBebida = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/menu/product/${id}`);
+        const response = await fetch(`http://192.168.1.43:3000/api/menu/product/${id}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         setBebida(data);
@@ -37,66 +46,195 @@ export default function BebidaDetalle() {
   }, [id]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#000" style={{ marginTop: 40 }} />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#101868" />
+        <Text style={styles.loadingText}>Cargando bebida...</Text>
+      </View>
+    );
   }
 
   if (!bebida) {
-    return <Text style={{ marginTop: 40, textAlign: "center" }}>No se encontró la bebida.</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>No se encontró la bebida.</Text>
+      </View>
+    );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{bebida.display_name}</Text>
-      <Text style={styles.label}>Disponible:</Text>
-      <Text style={styles.value}>{bebida.is_available ? "Sí" : "No"}</Text>
+    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push("/")}
+          accessibilityLabel="Volver al menú"
+        >
+          <Feather name="arrow-left" size={24} color="#ccebf3" />
+        </TouchableOpacity>
 
-      <Text style={styles.label}>Descripción:</Text>
-      <Text style={styles.value}>{bebida.description}</Text>
+        <Text style={styles.title}>{bebida.display_name}</Text>
 
-      <Text style={styles.label}>Tipo:</Text>
-      <Text style={styles.value}>{bebida.type}</Text>
-
-      <Text style={styles.label}>Precio:</Text>
-      <Text style={styles.value}>
-        {bebida.price_value} {bebida.price_currency}
-      </Text>
-
-      <Text style={styles.label}>Cantidad disponible:</Text>
-      <Text style={styles.value}>{bebida.quantity_available}</Text>
-
-      <Text style={styles.label}>Receta:</Text>
-      {Array.isArray(bebida.recipe) ? (
-        bebida.recipe.map((ingrediente, index) => (
-          <Text key={index} style={styles.value}>
-            - {ingrediente.name}: {ingrediente.quantity} {ingrediente.unit}
+        <View style={styles.infoBlock}>
+          <Text style={styles.label}>Disponible</Text>
+          <Text
+            style={[
+              styles.value,
+              bebida.is_available ? styles.available : styles.notAvailable,
+            ]}
+          >
+            {bebida.is_available ? "Sí" : "No"}
           </Text>
-        ))
-      ) : (
-        <Text style={styles.value}>{bebida.recipe}</Text>
-      )}
+        </View>
+
+        <Separator />
+
+        <View style={styles.infoBlock}>
+          <Text style={styles.label}>Descripción</Text>
+          <Text style={styles.value}>{bebida.description}</Text>
+        </View>
+
+        <Separator />
+
+        <View style={styles.infoBlock}>
+          <Text style={styles.label}>Tipo</Text>
+          <Text style={styles.value}>{bebida.type}</Text>
+        </View>
+
+        <Separator />
+
+        <View style={styles.infoBlock}>
+          <Text style={styles.label}>Precio</Text>
+          <Text style={styles.value}>
+            {bebida.price_value.toFixed(2)} {bebida.price_currency}
+          </Text>
+        </View>
+
+        <Separator />
+
+        <View style={styles.infoBlock}>
+          <Text style={styles.label}>Cantidad disponible</Text>
+          <Text style={styles.value}>{bebida.quantity_available}</Text>
+        </View>
+
+        <Separator />
+
+        <View style={styles.infoBlock}>
+          <Text style={styles.label}>Receta</Text>
+          <View style={styles.recipeContainer}>
+            {Array.isArray(bebida.recipe) ? (
+              bebida.recipe.map((ingrediente, index) => (
+                <Text key={index} style={styles.recipeText}>
+                  • {ingrediente.name}: {ingrediente.quantity} {ingrediente.unit}
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.value}>{bebida.recipe}</Text>
+            )}
+          </View>
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
 const styles = StyleSheet.create({
   container: {
+    padding: 24,
+    backgroundColor: "#ccebf3", // fondo general suave
+    paddingBottom: 40,
+  },
+  card: {
     backgroundColor: "#fff",
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "#101868",
+    shadowColor: "#101868",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    position: "relative",
+  },
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    padding: 8,
+    borderRadius: 30,
+    backgroundColor: "rgba(16, 24, 104, 0.8)", // #101868 con opacidad
+    zIndex: 10,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 30,
+    fontWeight: "800",
     textAlign: "center",
+    marginBottom: 24,
+    color: "#101868",
+  },
+  infoBlock: {
+    marginVertical: 10,
   },
   label: {
-    fontWeight: "bold",
     fontSize: 16,
-    marginTop: 12,
+    fontWeight: "700",
+    color: "#101868",
+    marginBottom: 6,
   },
   value: {
-    fontSize: 16,
-    marginTop: 4,
+    fontSize: 17,
     color: "#333",
+    lineHeight: 22,
+  },
+  available: {
+    color: "#27AE60",
+    fontWeight: "700",
+  },
+  notAvailable: {
+    color: "#E74C3C",
+    fontWeight: "700",
+  },
+  recipeContainer: {
+    marginTop: 8,
+    backgroundColor: "#e0f3fb", // variante clara de #ccebf3
+    borderRadius: 12,
+    padding: 16,
+  },
+  recipeText: {
+    fontSize: 15,
+    color: "#444",
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
+    backgroundColor: "#ccebf3",
+  },
+  loadingText: {
+    marginTop: 14,
+    fontSize: 16,
+    color: "#101868",
+    fontWeight: "600",
+  },
+  errorText: {
+    fontSize: 18,
+    color: "#555",
+    fontStyle: "italic",
+    textAlign: "center",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#101868",
+    marginVertical: 14,
+    borderRadius: 1,
+    opacity: 0.2,
   },
 });
