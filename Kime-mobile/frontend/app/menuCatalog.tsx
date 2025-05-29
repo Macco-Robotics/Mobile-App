@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
   Button,
+  TouchableOpacity,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { filterMenus } from "../utils/filterMenus";
@@ -26,8 +27,8 @@ export default function MenuCatalog() {
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [selectedType, setSelectedType] = useState<string>(""); // valor inicial vacío
-  const [selectedIngredient, setSelectedIngredient] = useState<string>(""); // valor inicial vacío
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedIngredient, setSelectedIngredient] = useState<string>("");
   const [types, setTypes] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [numColumns, setNumColumns] = useState(2);
@@ -70,7 +71,10 @@ export default function MenuCatalog() {
   };
 
   const renderItem = ({ item }: { item: MenuItem }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => console.log("Pressed:", item.display_name)}
+    >
       <Text style={styles.name}>{item.display_name}</Text>
       <Text style={styles.description}>{item.description}</Text>
       <Text style={styles.price}>
@@ -80,11 +84,11 @@ export default function MenuCatalog() {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#fff" style={{ marginTop: 40 }} />;
+    return <ActivityIndicator size="large" color="#000" style={{ marginTop: 40 }} />;
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#001F3F" }}>
       <TextInput
         style={styles.searchBar}
         placeholder="Buscar en el catálogo..."
@@ -121,7 +125,9 @@ export default function MenuCatalog() {
 
       {filteredItems.length === 0 ? (
         <View style={styles.noResults}>
-          <Text style={styles.noResultsText}>No se han encontrado resultados para tu búsqueda.</Text>
+          <Text style={styles.noResultsText}>
+            No se han encontrado resultados para tu búsqueda.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -134,10 +140,6 @@ export default function MenuCatalog() {
           showsVerticalScrollIndicator={false}
         />
       )}
-
-      <View style={styles.clearFiltersContainer}>
-        <Button title="Limpiar filtros" onPress={clearFilters} />
-      </View>
     </View>
   );
 }
@@ -150,24 +152,27 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   picker: {
-    margin: 10,
+    marginHorizontal: 10,
     backgroundColor: "#fff",
+    borderRadius: 5,
   },
   card: {
     flex: 1,
-    padding: 10,
+    padding: 15,
     margin: 10,
     backgroundColor: "#003366",
-    borderRadius: 5,
+    borderRadius: 8,
   },
   name: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    marginBottom: 5,
   },
   description: {
     color: "#ccc",
     fontSize: 14,
+    marginBottom: 5,
   },
   price: {
     color: "#fff",
@@ -178,14 +183,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
   },
   noResultsText: {
     fontSize: 16,
     color: "#FF0000",
     fontWeight: "bold",
-    marginBottom: 10,
+    textAlign: "center",
   },
   clearFiltersContainer: {
     margin: 10,
+  },
+  list: {
+    paddingBottom: 20,
   },
 });
