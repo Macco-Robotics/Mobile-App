@@ -76,7 +76,7 @@ export default function MenuCatalog() {
       <Text style={styles.price}>
         {item.price_value} {item.price_currency}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

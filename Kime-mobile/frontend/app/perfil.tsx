@@ -1,101 +1,146 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button, StyleSheet, ScrollView } from 'react-native';
-import axios from 'axios';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-type Questionnaire = {
-  flavourPreferences: string[];
-  alcoholRestriction: string;
-  caffeinePreferences: string;
-  physicalActivityLevel: string;
-  orderMotivation: string;
-  wantsNotifications: boolean;
-  notificationTypes: string[];
-};
+const ProfileScreen: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-type User = {
-  _id: string;
-  user: string;
-  name: string;
-  surname: string;
-  email: string;
-  postal_code: string;
-  phone_number: string;
-  image: string;
-  role: 'owner' | 'user';
-  description: string;
-  questionnaire: Questionnaire;
-};
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No se encontró el token');
 
-type RootStackParamList = {
-  Perfil: undefined;
-  EditarPerfil: { userId: string };
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'Perfil'>;
-
-export default function Perfil({ navigation }: Props) {
-  const [user, setUser] = useState<User | null>(null);
+      const res = await fetch('http://localhost:3000/api/user/profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.status === 401) {
+        Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo');
+        await AsyncStorage.removeItem('token');
+        router.replace('/login');
+        return;
+      }
+      if (!res.ok) throw new Error('Error al obtener perfil');
+      const data = await res.json();
+      setUser(data);
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'Error al cargar el perfil');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Sustituye '123' por el ID real, o recógelo de tu contexto/auth
-    axios.get<User>('https://tu-api.com/user/johndoe')
-      .then(res => setUser(res.data))
-      .catch(err => console.error(err));
+    fetchProfile();
   }, []);
 
-  if (!user) {
-    return <Text>Cargando perfil...</Text>;
+  if (loading) {
+    return <ActivityIndicator size="large" color="#00B7EB" style={{ marginTop: 50 }} />;
   }
+
+  if (!user) {
+    return <Text style={styles.errorText}>No se pudo cargar el perfil</Text>;
+  }
+
+  const InfoItem = ({ label, value }: { label: string; value: string | boolean | string[] }) => (
+    <View style={styles.infoItem}>
+      <Text style={styles.label}>{label}:</Text>
+      <Text style={styles.value}>{Array.isArray(value) ? value.join(', ') : value?.toString()}</Text>
+    </View>
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {user.image ? (
-        <Image source={{ uri: user.image }} style={styles.avatar} />
-      ) : (
-        <View style={[styles.avatar, styles.placeholder]}>
-          <Text style={styles.placeholderText}>No Image</Text>
-        </View>
-      )}
-      <Text style={styles.name}>{user.name} {user.surname}</Text>
-      <Text style={styles.subtitle}>{user.email}</Text>
-      <Text style={styles.sectionTitle}>Descripción</Text>
-      <Text style={styles.text}>{user.description || '—'}</Text>
+      <Text style={styles.title}>Perfil del Usuario</Text>
 
-      <Text style={styles.sectionTitle}>Dirección</Text>
-      <Text style={styles.text}>CP: {user.postal_code}</Text>
-      <Text style={styles.text}>Teléfono: {user.phone_number}</Text>
+      <InfoItem label="Nombre de usuario" value={user.user} />
+      <InfoItem label="Nombre" value={user.name} />
+      <InfoItem label="Apellidos" value={user.surname} />
+      <InfoItem label="Email" value={user.email} />
+      <InfoItem label="Teléfono" value={user.phone_number} />
+      <InfoItem label="Código Postal" value={user.postal_code} />
+      <InfoItem label="Descripción" value={user.description || 'N/A'} />
 
-      <Text style={styles.sectionTitle}>Cuestionario</Text>
-      <Text style={styles.text}>Preferencias de sabor: {user.questionnaire.flavourPreferences.join(', ') || '—'}</Text>
-      <Text style={styles.text}>Alcohol: {user.questionnaire.alcoholRestriction}</Text>
-      <Text style={styles.text}>Cafeína: {user.questionnaire.caffeinePreferences}</Text>
-      <Text style={styles.text}>Actividad física: {user.questionnaire.physicalActivityLevel}</Text>
-      <Text style={styles.text}>Motivación: {user.questionnaire.orderMotivation}</Text>
-      <Text style={styles.text}>
-        Notificaciones: {user.questionnaire.wantsNotifications ? 'Sí' : 'No'}
-      </Text>
-      {user.questionnaire.wantsNotifications && (
-        <Text style={styles.text}>
-          Tipos: {user.questionnaire.notificationTypes.join(', ') || '—'}
-        </Text>
-      )}
+      <Text style={styles.subtitle}>Preferencias</Text>
+      <InfoItem label="Sabores preferidos" value={user.questionnaire?.flavourPreferences || []} />
+      <InfoItem label="Restricción de alcohol" value={user.questionnaire?.alcoholRestriction} />
+      <InfoItem label="Preferencia por cafeína" value={user.questionnaire?.caffeinePreferences} />
+      <InfoItem label="Nivel de actividad física" value={user.questionnaire?.physicalActivityLevel} />
+      <InfoItem label="Motivación al ordenar" value={user.questionnaire?.orderMotivation} />
+      <InfoItem label="¿Desea notificaciones?" value={user.questionnaire?.wantsNotifications ? 'Sí' : 'No'} />
+      <InfoItem label="Tipos de notificación" value={user.questionnaire?.notificationTypes || []} />
 
-      <Button
-        title="Editar perfil"
-        onPress={() => navigation.navigate('EditarPerfil', { userId: user._id })}
-      />
+      <TouchableOpacity style={styles.editButton} onPress={() => router.push('/editPerfil')}>
+        <Text style={styles.editButtonText}>Editar Perfil</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { padding: 20, alignItems: 'center' },
-  avatar: { width: 120, height: 120, borderRadius: 60, marginBottom: 16 },
-  placeholder: { backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center' },
-  placeholderText: { color: '#666' },
-  name: { fontSize: 24, fontWeight: 'bold' },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 16 },
-  sectionTitle: { fontSize: 18, marginTop: 20, fontWeight: '600' },
-  text: { fontSize: 16, marginTop: 4, textAlign: 'center' },
+  container: {
+    padding: 20,
+    backgroundColor: '#001F3F',
+    flexGrow: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
+    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  infoItem: {
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 16,
+    color: '#A9D6E5',
+    fontWeight: '600',
+  },
+  value: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+  },
+  editButton: {
+    marginTop: 30,
+    backgroundColor: '#A9D6E5',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: '#003366',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
+
+export default ProfileScreen;

@@ -1,176 +1,146 @@
-import { useRouter } from "expo-router"; // Importa el hook
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from "react-native";
-import RegistrationForm from "../(registration)/RegistrationForm";
+  View,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-const LoginScreen: React.FC = () => {
-  const [user, setUser] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const [showRegister, setShowRegister] = useState(false);
-  const router = useRouter(); // Inicializa el router
+const ProfileScreen: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Handler para el segundo enlace de registro
-  const onRegisterPress = () => setShowRegister(true);
-
-  const handleLogin = async () => {
-    if (!user || !password) {
-      Alert.alert("Error", "Por favor ingresa tu usuario y contraseña");
-      return;
-    }
-    setLoading(true);
+  const fetchProfile = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/user/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user, password }),
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No se encontró el token');
+
+      const res = await fetch('http://localhost:3000/api/user/profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       });
-      const result = await response.json();
-      if (response.ok) {
-        setToken(result.token);
-        Alert.alert("Éxito", "Sesión iniciada correctamente");
-        router.replace("/"); // Redirige al home
-      } else {
-        Alert.alert(
-          "Error de autenticación",
-          result.message || "Usuario o contraseña incorrectos"
-        );
+      if (res.status === 401) {
+        Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo');
+        await AsyncStorage.removeItem('token');
+        router.replace('/login');
+        return;
       }
-    } catch (error) {
+      if (!res.ok) throw new Error('Error al obtener perfil');
+      const data = await res.json();
+      setUser(data);
+    } catch (error: any) {
       console.error(error);
-      Alert.alert("Error", "Error de red o servidor");
+      Alert.alert('Error', error.message || 'Error al cargar el perfil');
     } finally {
       setLoading(false);
     }
   };
 
-  if (showRegister) {
-    return (
-      <RegistrationForm
-        onRegistrationComplete={() => setShowRegister(false)}
-      />
-    );
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#00B7EB" style={{ marginTop: 50 }} />;
   }
 
+  if (!user) {
+    return <Text style={styles.errorText}>No se pudo cargar el perfil</Text>;
+  }
+
+  const InfoItem = ({ label, value }: { label: string; value: string | boolean | string[] }) => (
+    <View style={styles.infoItem}>
+      <Text style={styles.label}>{label}:</Text>
+      <Text style={styles.value}>{Array.isArray(value) ? value.join(', ') : value?.toString()}</Text>
+    </View>
+  );
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.wrapper}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.title}>Iniciar Sesión</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Perfil del Usuario</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Usuario"
-        placeholderTextColor="#A9D6E5"
-        autoCapitalize="none"
-        value={user}
-        onChangeText={setUser}
-      />
+      <InfoItem label="Nombre de usuario" value={user.user} />
+      <InfoItem label="Nombre" value={user.name} />
+      <InfoItem label="Apellidos" value={user.surname} />
+      <InfoItem label="Email" value={user.email} />
+      <InfoItem label="Teléfono" value={user.phone_number} />
+      <InfoItem label="Código Postal" value={user.postal_code} />
+      <InfoItem label="Descripción" value={user.description || 'N/A'} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor="#A9D6E5"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <Text style={styles.subtitle}>Preferencias</Text>
+      <InfoItem label="Sabores preferidos" value={user.questionnaire?.flavourPreferences || []} />
+      <InfoItem label="Restricción de alcohol" value={user.questionnaire?.alcoholRestriction} />
+      <InfoItem label="Preferencia por cafeína" value={user.questionnaire?.caffeinePreferences} />
+      <InfoItem label="Nivel de actividad física" value={user.questionnaire?.physicalActivityLevel} />
+      <InfoItem label="Motivación al ordenar" value={user.questionnaire?.orderMotivation} />
+      <InfoItem label="¿Desea notificaciones?" value={user.questionnaire?.wantsNotifications ? 'Sí' : 'No'} />
+      <InfoItem label="Tipos de notificación" value={user.questionnaire?.notificationTypes || []} />
 
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        <Text style={styles.loginButtonText}>
-          {loading ? "Cargando..." : "Entrar"}
-        </Text>
+      <TouchableOpacity style={styles.editButton} onPress={() => router.push('/edit-profile')}>
+        <Text style={styles.editButtonText}>Editar Perfil</Text>
       </TouchableOpacity>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>¿No tienes cuenta?</Text>
-        <TouchableOpacity onPress={() => setShowRegister(true)}>
-          <Text style={styles.linkText}> Regístrate</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.registerText}>
-        ¿No tienes una cuenta?{" "}
-        <Text style={styles.registerLink} onPress={onRegisterPress}>
-          Regístrate
-        </Text>
-      </Text>
     </ScrollView>
   );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: "#001F3F",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
+  container: {
+    padding: 20,
+    backgroundColor: '#001F3F',
+    flexGrow: 1,
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFF",
+    fontWeight: 'bold',
+    color: '#A9D6E5',
     marginBottom: 20,
   },
-  input: {
-    backgroundColor: "#DCEBFB",
-    borderRadius: 8,
-    padding: 12,
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
+    marginTop: 20,
     marginBottom: 10,
-    width: "100%",
-    color: "#000",
   },
-  loginButton: {
-    backgroundColor: "#00B7EB",
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 20,
+  infoItem: {
+    marginBottom: 10,
   },
-  loginButtonText: {
-    color: "#FFF",
-    fontWeight: "bold",
+  label: {
+    fontSize: 16,
+    color: '#A9D6E5',
+    fontWeight: '600',
+  },
+  value: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    textAlign: 'center',
+    marginTop: 50,
     fontSize: 16,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 12,
+  editButton: {
+    marginTop: 30,
+    backgroundColor: '#A9D6E5',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  footerText: {
-    color: "#FFF",
+  editButtonText: {
+    color: '#003366',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  linkText: {
-    color: "#00B7EB",
-    fontWeight: "bold",
-  },
-  registerText: {
-    color: "#FFF",
-    alignSelf: "center",
-    marginTop: 10,
-  },
-  registerLink: {
-    color: "#00B7EB",
-    fontWeight: "bold",
-  },
-  // (si tenías estilos extra –cardContainer, label, social*, etc.–
-  // puedes dejarlos aquí; no afectan al resto)
 });
+
+export default ProfileScreen;
