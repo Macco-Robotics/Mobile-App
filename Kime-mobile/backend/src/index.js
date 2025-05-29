@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 app.use('/api/menu', menuRoutes);
 app.use('/api/user', userRoutes);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
   connectDB();
 });
