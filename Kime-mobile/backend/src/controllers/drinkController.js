@@ -43,7 +43,8 @@ export const getDrinkById = async (req, res) => {
 }
 
 export const createDrink = async (req, res) => {
-    const { name, description, ingredients, type, creator, isPublic } = req.body;
+    const { name, description, ingredients, type, isPublic } = req.body;
+    const creator = req.user.id;
 
     try {
         // Assign a default image depending on the type of the drink
@@ -183,17 +184,17 @@ export const toggleSaveDrink = async (req, res) => {
         if (!drink) return res.status(404).json({ message: 'Drink not found' });
         if (!drink.isPublic) return res.status(400).json({ message: 'Drink is not public' });
 
-        if(!user.savedDrinks.includes(drinkId)){
+        if (!user.savedDrinks.includes(drinkId)) {
             user.savedDrinks.push(drinkId);
             await user.save();
-            return res.status(200).json({message: 'Drink saved!'});
+            return res.status(200).json({ message: 'Drink saved!' });
         } else {
             user.savedDrinks = user.savedDrinks.filter(id => id.toString() !== drinkId);
             await user.save();
-            return res.status(200).json({message: 'Drink unsaved!'});
+            return res.status(200).json({ message: 'Drink unsaved!' });
         }
     } catch (error) {
         console.log(error);
-        res.status(500).json({message: 'Error while saving the drink: ',error});
+        res.status(500).json({ message: 'Error while saving the drink: ', error });
     }
 }
