@@ -4,6 +4,7 @@ import express from 'express';
 import { connectDB } from './db/conn.js';
 
 import drinkRoutes from './routes/drinkRoutes.js';
+import ingredientRoutes from './routes/ingredientRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 import menuRoutes from './routes/menuRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -24,7 +25,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/menu', menuRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/ingredients', inventoryRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/ingredient', ingredientRoutes);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
