@@ -68,7 +68,10 @@ const userSchema = new mongoose.Schema({
     image: { type: String, default: '' },
     role: { type: String, enum: ['owner', 'user'], default: 'user' },
     description: { type: String, default: '' },
-    questionnaire: {type: questionnaireSchema, default: {}}
+    questionnaire: {type: questionnaireSchema, default: {}},
+    likedDrinks: [{type: mongoose.Schema.Types.ObjectId, ref: 'Drink', default: []}],
+    savedDrinks: [{type: mongoose.Schema.Types.ObjectId, ref: 'Drink', default: []}],
+    createdDrinks: [{type: mongoose.Schema.Types.ObjectId, ref: 'Drink', default: []}],
   }, { collection: "user"});
 
   const User = mongoose.model("User", userSchema);
