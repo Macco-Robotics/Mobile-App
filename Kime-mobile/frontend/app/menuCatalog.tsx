@@ -42,7 +42,7 @@ export default function MenuCatalog() {
         setFilteredItems(menuData);
 
         const uniqueTypes = Array.from(new Set(menuData.map((item: MenuItem) => item.type)));
-        setTypes(uniqueTypes);
+      
 
         const ingredientsResponse = await fetch("http://localhost:3000/api/ingredients");
         const ingredientsData = await ingredientsResponse.json();
