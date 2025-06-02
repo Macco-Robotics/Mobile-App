@@ -156,7 +156,7 @@ export const updateDrink = async (req, res) => {
         if (!drink) return res.status(404).json({ message: 'Drink not found' });
 
         if (drink.creator.toString() !== userId) {
-            return res.status(403).json({ message: "You don't have permission to update this drink." });
+            return res.status(403).json({ message: "This drink doesn't belong to you." });
         }
 
         const { name, description, type, ingredientsIds, isPublic } = { ...req.body };
@@ -195,5 +195,27 @@ export const toggleSaveDrink = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({message: 'Error while saving the drink: ',error});
+    }
+}
+
+export const removeCreatedDrink = async (req, res) => {
+    const drinkId = req.params.id;
+    const userId = req.user.id;
+    
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const drink = await Drink.findById(drinkId);
+
+        if(!drink) return res.status(404).json({message: 'Drink not found'});
+        if(drink.creator.toString() !== userId.toString()) return res.status(403).json({message: "This drink doesn't belong to you"});
+        if(drink.isPublic) return res.status(400).json({message: "You can't remove a public drink"});
+
+        await Drink.findByIdAndDelete(drinkId);
+        return res.status(200).json({message: 'Drink succesfully removed!'});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: 'Error while deleting the drink: ',error});
     }
 }
