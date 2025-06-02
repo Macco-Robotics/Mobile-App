@@ -4,7 +4,9 @@ import express from 'express';
 import { connectDB } from './db/conn.js';
 import authRoutes from './routes/authRoutes.js';
 import drinkRoutes from './routes/drinkRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
 import menuRoutes from './routes/menuRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -22,7 +24,11 @@ app.get('/', (req, res) => {
   res.send('Backend funcionando correctamente');
 });
 
-app.listen(PORT, () => {
+app.use('/api/menu', menuRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/ingredients', inventoryRoutes);
+
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
   connectDB();
 });

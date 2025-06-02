@@ -1,149 +1,146 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-interface LoginScreenProps {
-  onRegisterPress: () => void;
-}
+const ProfileScreen: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onRegisterPress }) => {
-  return (
-    <View style={styles.wrapper}>
-      <View style={styles.cardContainer}> {/* Contenedor hasta botón de login */}
-        <Text style={styles.label}>Usuario</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="SampleDomain"
-          placeholderTextColor="#ccc"
-        />
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No se encontró el token');
 
-        <Text style={styles.label}>Contraseña</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="SampleDomain"
-          placeholderTextColor="#ccc"
-          secureTextEntry
-        />
+      const res = await fetch('http://localhost:3000/api/user/profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.status === 401) {
+        Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo');
+        await AsyncStorage.removeItem('token');
+        router.replace('/login');
+        return;
+      }
+      if (!res.ok) throw new Error('Error al obtener perfil');
+      const data = await res.json();
+      setUser(data);
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'Error al cargar el perfil');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        <Text style={styles.forgotPassword}>¿Has olvidado la contraseña?</Text>
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-        </TouchableOpacity>
-      </View>
+  if (loading) {
+    return <ActivityIndicator size="large" color="#00B7EB" style={{ marginTop: 50 }} />;
+  }
 
-      {/* Fuera del contenedor visual */}
-      <Text style={styles.socialText}>- Inicia sesión con -</Text>
+  if (!user) {
+    return <Text style={styles.errorText}>No se pudo cargar el perfil</Text>;
+  }
 
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialCircle}>
-          <FontAwesome name="google" size={24} color="#DB4437" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialCircle}>
-          <FontAwesome name="instagram" size={24} color="#C13584" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialCircle}>
-          <FontAwesome name="facebook" size={24} color="#4267B2" />
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.registerText}>
-        ¿No tienes una cuenta?{' '}
-        <Text style={styles.registerLink} onPress={onRegisterPress}>
-          Regístrate
-        </Text>
-      </Text>
+  const InfoItem = ({ label, value }: { label: string; value: string | boolean | string[] }) => (
+    <View style={styles.infoItem}>
+      <Text style={styles.label}>{label}:</Text>
+      <Text style={styles.value}>{Array.isArray(value) ? value.join(', ') : value?.toString()}</Text>
     </View>
+  );
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Perfil del Usuario</Text>
+
+      <InfoItem label="Nombre de usuario" value={user.user} />
+      <InfoItem label="Nombre" value={user.name} />
+      <InfoItem label="Apellidos" value={user.surname} />
+      <InfoItem label="Email" value={user.email} />
+      <InfoItem label="Teléfono" value={user.phone_number} />
+      <InfoItem label="Código Postal" value={user.postal_code} />
+      <InfoItem label="Descripción" value={user.description || 'N/A'} />
+
+      <Text style={styles.subtitle}>Preferencias</Text>
+      <InfoItem label="Sabores preferidos" value={user.questionnaire?.flavourPreferences || []} />
+      <InfoItem label="Restricción de alcohol" value={user.questionnaire?.alcoholRestriction} />
+      <InfoItem label="Preferencia por cafeína" value={user.questionnaire?.caffeinePreferences} />
+      <InfoItem label="Nivel de actividad física" value={user.questionnaire?.physicalActivityLevel} />
+      <InfoItem label="Motivación al ordenar" value={user.questionnaire?.orderMotivation} />
+      <InfoItem label="¿Desea notificaciones?" value={user.questionnaire?.wantsNotifications ? 'Sí' : 'No'} />
+      <InfoItem label="Tipos de notificación" value={user.questionnaire?.notificationTypes || []} />
+
+      <TouchableOpacity style={styles.editButton} onPress={() => router.push('/edit-profile')}>
+        <Text style={styles.editButtonText}>Editar Perfil</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: "#001F3F",
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  cardContainer: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+  container: {
     padding: 20,
+    backgroundColor: '#001F3F',
+    flexGrow: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  infoItem: {
+    marginBottom: 10,
   },
   label: {
-    color: '#00B7EB',
-    marginTop: 10,
-    marginBottom: 5,
-    fontWeight: 'bold',
-    alignSelf: 'flex-start',
+    fontSize: 16,
+    color: '#A9D6E5',
+    fontWeight: '600',
   },
-  input: {
-    backgroundColor: '#DCEBFB',
+  value: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+  },
+  editButton: {
+    marginTop: 30,
+    backgroundColor: '#A9D6E5',
+    padding: 15,
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    width: '100%',
-    color: '#000',
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    color: '#666',
-    marginBottom: 20,
-    fontSize: 12,
-  },
-  loginButton: {
-    backgroundColor: '#00B7EB',
-    paddingVertical: 12,
-    borderRadius: 10,
     alignItems: 'center',
-    width: '100%',
   },
-  loginButtonText: {
-    color: '#FFF',
+  editButtonText: {
+    color: '#003366',
     fontWeight: 'bold',
     fontSize: 16,
   },
-  socialText: {
-    color: '#FFF',
-    marginBottom: 10,
-    alignSelf: 'center',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-    marginBottom: 20,
-  },
-  socialCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  
-  registerText: {
-    color: '#FFF',
-    alignSelf: 'center',
-  },
-  registerLink: {
-    color: '#00B7EB',
-    fontWeight: 'bold',
-  },
 });
+
+export default ProfileScreen;

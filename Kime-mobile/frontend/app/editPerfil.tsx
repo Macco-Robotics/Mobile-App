@@ -1,181 +1,146 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, Switch, Button,
-  ScrollView, StyleSheet, Alert
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Alert
 } from 'react-native';
-import axios from 'axios';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-type Questionnaire = {
-  flavourPreferences: string[];
-  alcoholRestriction: string;
-  caffeinePreferences: string;
-  physicalActivityLevel: string;
-  orderMotivation: string;
-  wantsNotifications: boolean;
-  notificationTypes: string[];
-};
-
-type User = {
-  name: string;
-  surname: string;
-  email: string;
-  postal_code: string;
-  phone_number: string;
-  description: string;
-  questionnaire: Questionnaire;
-};
-
-type RootStackParamList = {
-  EditarPerfil: { userId: string };
-};
-
-type Props = NativeStackScreenProps<RootStackParamList, 'EditarPerfil'>;
-
-export default function EditarPerfil({ route, navigation }: Props) {
-  const { userId } = route.params;
-  const [data, setData] = useState<User | null>(null);
+const EditPerfil = () => {
+  const [form, setForm] = useState<any>({});
+  const router = useRouter();
 
   useEffect(() => {
-    axios.get<User>(`https://tu-api.com/users/${userId}`)
-      .then(res => setData(res.data))
-      .catch(err => console.error(err));
+    const loadProfile = async () => {
+      const token = await AsyncStorage.getItem('token');
+      const res = await fetch('http://localhost:3000/api/user/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      setForm(data);
+    };
+    loadProfile();
   }, []);
 
-  const handleSave = () => {
-    if (!data) return;
-    axios.put(`https://tu-api.com/users/${userId}`, data)
-      .then(() => {
-        Alert.alert('Perfil actualizado');
-        navigation.goBack();
-      })
-      .catch(err => {
-        console.error(err);
-        Alert.alert('Error al guardar');
-      });
+  const handleChange = (field: string, value: any) => {
+    if (field.startsWith('questionnaire.')) {
+      const key = field.split('.')[1];
+      setForm((prev: any) => ({
+        ...prev,
+        questionnaire: {
+          ...prev.questionnaire,
+          [key]: value
+        }
+      }));
+    } else {
+      setForm((prev: any) => ({ ...prev, [field]: value }));
+    }
   };
 
-  if (!data) return <Text>Cargando para editar...</Text>;
+  const handleSave = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const completedForm = {
+        ...form,
+        questionnaire: {
+          ...form.questionnaire,
+          alcoholRestriction: form.questionnaire?.alcoholRestriction || "I have no restrictions",
+          caffeinePreferences: form.questionnaire?.caffeinePreferences || "Only small amounts",
+          physicalActivityLevel: form.questionnaire?.physicalActivityLevel || "Moderate",
+          orderMotivation: form.questionnaire?.orderMotivation || "Depends",
+        },
+      };
+
+      const res = await fetch('http://localhost:3000/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(completedForm),
+      });
+      if (res.ok) {
+        router.replace('/perfil');
+      } else {
+        const error = await res.json();
+        Alert.alert('Error', error.message || 'No se pudo actualizar el perfil');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'No se pudo actualizar el perfil');
+    }
+  };
+
+  if (!form) return <Text style={{ marginTop: 50, textAlign: 'center', color: 'white' }}>Cargando...</Text>;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Campos básicos */}
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        value={data.name}
-        onChangeText={name => setData({ ...data, name })}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Apellido"
-        value={data.surname}
-        onChangeText={surname => setData({ ...data, surname })}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={data.email}
-        onChangeText={email => setData({ ...data, email })}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Código postal"
-        value={data.postal_code}
-        onChangeText={postal_code => setData({ ...data, postal_code })}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Teléfono"
-        value={data.phone_number}
-        onChangeText={phone_number => setData({ ...data, phone_number })}
-        keyboardType="phone-pad"
-      />
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        placeholder="Descripción"
-        value={data.description}
-        onChangeText={description => setData({ ...data, description })}
-        multiline
-        numberOfLines={3}
-      />
+      <Text style={styles.title}>Editar Perfil</Text>
 
-      {/* Cuestionario: ejemplo para alcoholRestriction */}
-      <Text style={styles.label}>Restricción de alcohol</Text>
-      <Picker
-        selectedValue={data.questionnaire.alcoholRestriction}
-        onValueChange={value =>
-          setData({
-            ...data,
-            questionnaire: { ...data.questionnaire, alcoholRestriction: value }
-          })
-        }
-      >
-        {[
-          "I don't drink alcohol",
-          "I prefer low-alcohol drinks",
-          "I have no restrictions"
-        ].map(opt => (
-          <Picker.Item key={opt} label={opt} value={opt} />
-        ))}
-      </Picker>
+      <TextInput style={styles.input} placeholder="Nombre" value={form.name || ''} onChangeText={(v) => handleChange('name', v)} />
+      <TextInput style={styles.input} placeholder="Apellidos" value={form.surname || ''} onChangeText={(v) => handleChange('surname', v)} />
+      <TextInput style={styles.input} placeholder="Email" value={form.email || ''} onChangeText={(v) => handleChange('email', v)} />
+      <TextInput style={styles.input} placeholder="Teléfono" value={form.phone_number || ''} onChangeText={(v) => handleChange('phone_number', v)} />
+      <TextInput style={styles.input} placeholder="Código Postal" value={form.postal_code || ''} onChangeText={(v) => handleChange('postal_code', v)} />
+      <TextInput style={styles.input} placeholder="Descripción" value={form.description || ''} onChangeText={(v) => handleChange('description', v)} />
 
-      {/* Similarmente agrega Pickers para caffeinePreferences, physicalActivityLevel, orderMotivation */}
+      <Text style={styles.subtitle}>Preferencias</Text>
+      <TextInput style={styles.input} placeholder="Café" value={form.questionnaire?.caffeinePreferences || ''} onChangeText={(v) => handleChange('questionnaire.caffeinePreferences', v)} />
+      <TextInput style={styles.input} placeholder="Alcohol" value={form.questionnaire?.alcoholRestriction || ''} onChangeText={(v) => handleChange('questionnaire.alcoholRestriction', v)} />
+      <TextInput style={styles.input} placeholder="Actividad física" value={form.questionnaire?.physicalActivityLevel || ''} onChangeText={(v) => handleChange('questionnaire.physicalActivityLevel', v)} />
+      <TextInput style={styles.input} placeholder="Motivación" value={form.questionnaire?.orderMotivation || ''} onChangeText={(v) => handleChange('questionnaire.orderMotivation', v)} />
 
-      <View style={styles.switchRow}>
-        <Text style={styles.label}>¿Quieres notificaciones?</Text>
-        <Switch
-          value={data.questionnaire.wantsNotifications}
-          onValueChange={wantsNotifications =>
-            setData({
-              ...data,
-              questionnaire: { ...data.questionnaire, wantsNotifications }
-            })
-          }
-        />
-      </View>
-
-      {/* Si quiere notifs, muestra opciones multilple-select (por simplicidad, checkboxes) */}
-      {data.questionnaire.wantsNotifications && (
-        <>
-          <Text style={styles.label}>Tipos de notificación</Text>
-          {['Promotions', 'Events', 'Recommendations', 'New drinks'].map(type => (
-            <View style={styles.switchRow} key={type}>
-              <Text>{type}</Text>
-              <Switch
-                value={data.questionnaire.notificationTypes.includes(type)}
-                onValueChange={on => {
-                  let arr = [...data.questionnaire.notificationTypes];
-                  if (on) arr.push(type);
-                  else arr = arr.filter(t => t !== type);
-                  setData({
-                    ...data,
-                    questionnaire: { ...data.questionnaire, notificationTypes: arr }
-                  });
-                }}
-              />
-            </View>
-          ))}
-        </>
-      )}
-
-      <Button title="Guardar cambios" onPress={handleSave} />
+      <TouchableOpacity style={styles.button} onPress={handleSave}>
+        <Text style={styles.buttonText}>Guardar Cambios</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
-}
+};
+
+export default EditPerfil;
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  input: {
-    borderWidth: 1, borderColor: '#ccc', borderRadius: 4,
-    padding: 8, marginBottom: 12
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#001F3F',
+    padding: 20,
   },
-  textArea: { height: 80, textAlignVertical: 'top' },
-  label: { marginTop: 12, marginBottom: 4, fontWeight: '600' },
-  switchRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginVertical: 8
-  }
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
+    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#A9D6E5',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  input: {
+    backgroundColor: '#DCEBFB',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    color: '#000',
+  },
+  button: {
+    backgroundColor: '#A9D6E5',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#003366',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
