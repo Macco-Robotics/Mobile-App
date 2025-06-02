@@ -22,7 +22,7 @@ export const getDrinkById = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        console.log(drinkId)
+
         const drink = await Drink.findById(drinkId)
             .populate('ingredientIds')
             .populate('creator', 'name surname');
