@@ -3,9 +3,10 @@ import dotenv from 'dotenv';
 import express from 'express';
 import { connectDB } from './db/conn.js';
 
+import drinkRoutes from './routes/drinkRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
 import menuRoutes from './routes/menuRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import inventoryRoutes from './routes/inventoryRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -14,6 +15,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/drink', drinkRoutes);
+app.use('/api/menu', menuRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend funcionando correctamente');
