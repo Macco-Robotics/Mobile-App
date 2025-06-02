@@ -1,146 +1,130 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  ActivityIndicator,
-  Alert,
-  TouchableOpacity
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-const ProfileScreen: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+type LoginScreenProps = {
+  onLoginSuccess: (token: string) => void;
+  onGoToRegister: () => void;
+};
 
-  const fetchProfile = async () => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegister }) => {
+  const [userOrEmail, setUserOrEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!userOrEmail || !password) {
+      Alert.alert("Error", "Por favor ingresa usuario/email y contraseña");
+      return;
+    }
+    setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) throw new Error('No se encontró el token');
-
-      const res = await fetch('http://localhost:3000/api/user/profile', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch("http://localhost:3000/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: userOrEmail,
+          password: password,
+        }),
       });
-      if (res.status === 401) {
-        Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo');
-        await AsyncStorage.removeItem('token');
-        router.replace('/login');
-        return;
+      const result = await response.json();
+      if (response.ok) {
+        // Suponemos que el backend devuelve un token
+        onLoginSuccess(result.token);
+        await AsyncStorage.setItem("token", result.token);
+      } else {
+        Alert.alert("Error de autenticación", result.message || "Usuario o contraseña incorrectos");
       }
-      if (!res.ok) throw new Error('Error al obtener perfil');
-      const data = await res.json();
-      setUser(data);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      Alert.alert('Error', error.message || 'Error al cargar el perfil');
+      Alert.alert("Error", "Error de red o servidor");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="#00B7EB" style={{ marginTop: 50 }} />;
-  }
-
-  if (!user) {
-    return <Text style={styles.errorText}>No se pudo cargar el perfil</Text>;
-  }
-
-  const InfoItem = ({ label, value }: { label: string; value: string | boolean | string[] }) => (
-    <View style={styles.infoItem}>
-      <Text style={styles.label}>{label}:</Text>
-      <Text style={styles.value}>{Array.isArray(value) ? value.join(', ') : value?.toString()}</Text>
-    </View>
-  );
-
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Perfil del Usuario</Text>
-
-      <InfoItem label="Nombre de usuario" value={user.user} />
-      <InfoItem label="Nombre" value={user.name} />
-      <InfoItem label="Apellidos" value={user.surname} />
-      <InfoItem label="Email" value={user.email} />
-      <InfoItem label="Teléfono" value={user.phone_number} />
-      <InfoItem label="Código Postal" value={user.postal_code} />
-      <InfoItem label="Descripción" value={user.description || 'N/A'} />
-
-      <Text style={styles.subtitle}>Preferencias</Text>
-      <InfoItem label="Sabores preferidos" value={user.questionnaire?.flavourPreferences || []} />
-      <InfoItem label="Restricción de alcohol" value={user.questionnaire?.alcoholRestriction} />
-      <InfoItem label="Preferencia por cafeína" value={user.questionnaire?.caffeinePreferences} />
-      <InfoItem label="Nivel de actividad física" value={user.questionnaire?.physicalActivityLevel} />
-      <InfoItem label="Motivación al ordenar" value={user.questionnaire?.orderMotivation} />
-      <InfoItem label="¿Desea notificaciones?" value={user.questionnaire?.wantsNotifications ? 'Sí' : 'No'} />
-      <InfoItem label="Tipos de notificación" value={user.questionnaire?.notificationTypes || []} />
-
-      <TouchableOpacity style={styles.editButton} onPress={() => router.push('/edit-profile')}>
-        <Text style={styles.editButtonText}>Editar Perfil</Text>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <Text style={styles.title}>Iniciar Sesión</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Usuario o Email"
+        placeholderTextColor="#A9D6E5"
+        autoCapitalize="none"
+        value={userOrEmail}
+        onChangeText={setUserOrEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        placeholderTextColor="#A9D6E5"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? "Cargando..." : "Entrar"}</Text>
       </TouchableOpacity>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>¿No tienes cuenta?</Text>
+        <TouchableOpacity onPress={onGoToRegister}>
+          <Text style={styles.linkText}> Regístrate</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#001F3F',
     flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#001F3F",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#A9D6E5',
+    fontWeight: "bold",
+    color: "#A9D6E5",
+    marginBottom: 30,
+  },
+  input: {
+    width: "100%",
+    padding: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#A9D6E5",
+    borderRadius: 5,
+    color: "#FFFFFF",
+    backgroundColor: "#002B5B",
+  },
+  button: {
+    backgroundColor: "#A9D6E5",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
     marginBottom: 20,
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#A9D6E5',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  infoItem: {
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 16,
-    color: '#A9D6E5',
-    fontWeight: '600',
-  },
-  value: {
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  errorText: {
-    color: '#FF6B6B',
-    textAlign: 'center',
-    marginTop: 50,
+  buttonText: {
+    color: "#003366",
+    fontWeight: "bold",
     fontSize: 16,
   },
-  editButton: {
-    marginTop: 30,
-    backgroundColor: '#A9D6E5',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  editButtonText: {
-    color: '#003366',
-    fontWeight: 'bold',
-    fontSize: 16,
+  footerText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+  },
+  linkText: {
+    color: "#A9D6E5",
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });
 
-export default ProfileScreen;
+export default LoginScreen;
