@@ -1,15 +1,15 @@
+import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Button,
   FlatList,
   StyleSheet,
   Text,
   TextInput,
-  View,
-  Button,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { filterMenus } from "../utils/filterMenus";
 
 type MenuItem = {
@@ -44,7 +44,7 @@ export default function MenuCatalog() {
         const uniqueTypes = Array.from(new Set(menuData.map((item: MenuItem) => item.type)));
         setTypes(uniqueTypes);
 
-        const ingredientsResponse = await fetch("http://localhost:3000/api/ingredients");
+        const ingredientsResponse = await fetch("http://localhost:3000/api/inventory");
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
         setIngredients(uniqueIngredients);
