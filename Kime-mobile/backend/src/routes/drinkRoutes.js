@@ -6,6 +6,7 @@ import {
     getCreatedDrinksByCurrentUser,
     getDrinkById,
     getUserSavedDrinks,
+    removeCreatedDrink,
     toggleLikeDrink,
     toggleSaveDrink,
     updateDrink
@@ -24,5 +25,7 @@ router.post('/:id/like', authMiddleware, toggleLikeDrink);
 router.post('/:id/save', authMiddleware, toggleSaveDrink);
 
 router.put('/:id', authMiddleware, updateDrink);
+
+router.delete('/:id', authMiddleware, removeCreatedDrink);
 
 export default router;
