@@ -1,10 +1,11 @@
 // index.tsx
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import MenuCatalog from "./menuCatalog"; // Asegúrate de que la ruta sea correcta
+import { StyleSheet } from "react-native";
+import RegisterLoginController from "./(registration)/register-loginController";
 
 export default function HomeScreen() {
-  return (
+  return <RegisterLoginController />;
+    /*
     <View style={styles.container}>
       <Image
         source={require("../images/logomacco.png")} // Asegúrate de que la ruta sea válida
@@ -14,7 +15,8 @@ export default function HomeScreen() {
       <Text style={styles.title}>Nuestras Bebidas</Text>
       <MenuCatalog />
     </View>
-  );
+  ); */
+  
 }
 
 const styles = StyleSheet.create({
