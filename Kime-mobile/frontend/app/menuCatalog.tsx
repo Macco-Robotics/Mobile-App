@@ -6,12 +6,20 @@ import {
   Text,
   TextInput,
   View,
-  Button,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { filterMenus } from "../utils/filterMenus";
-import { useRouter } from "expo-router"; // ✅ Importar router para navegación
+
+const screenWidth = Dimensions.get("window").width;
+const numColumns = 4;
+const horizontalPadding = 18 * 2; // paddingHorizontal * 2
+const marginBetweenCards = 8; // space between cards horizontally
+
+const cardWidth = (screenWidth - horizontalPadding - marginBetweenCards * (numColumns - 1)) / numColumns;
 
 type MenuItem = {
   _id: string;
@@ -32,8 +40,6 @@ export default function MenuCatalog() {
   const [selectedIngredient, setSelectedIngredient] = useState<string>("");
   const [types, setTypes] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
-  const [numColumns, setNumColumns] = useState(2);
-  const router = useRouter(); // ✅ Inicializar router
 
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
@@ -75,10 +81,15 @@ export default function MenuCatalog() {
   const renderItem = ({ item }: { item: MenuItem }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`/bebida/${item._id}`)} // ✅ Redirige al detalle
+      onPress={() => console.log("Pressed:", item.display_name)}
+      activeOpacity={0.75}
     >
-      <Text style={styles.name}>{item.display_name}</Text>
-      <Text style={styles.description}>{item.description}</Text>
+      <Text style={styles.name} numberOfLines={1}>
+        {item.display_name}
+      </Text>
+      <Text style={styles.description} numberOfLines={2}>
+        {item.description}
+      </Text>
       <Text style={styles.price}>
         {item.price_value} {item.price_currency}
       </Text>
@@ -86,117 +97,225 @@ export default function MenuCatalog() {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#000" style={{ marginTop: 40 }} />;
+    return <ActivityIndicator size="large" color="#1e9ca4" style={{ marginTop: 50 }} />;
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#001F3F" }}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Buscar en el catálogo..."
-        placeholderTextColor="#aaa"
-        value={searchText}
-        onChangeText={setSearchText}
-      />
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#cae9ef" }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.container}>
+        {/* Title */}
+        <Text style={styles.title}>Nuestras bebidas</Text>
 
-      <Picker
-        selectedValue={selectedType}
-        onValueChange={setSelectedType}
-        style={styles.picker}
-      >
-        <Picker.Item label="Todos los tipos" value="" />
-        {types.map((type) => (
-          <Picker.Item key={type} label={type} value={type} />
-        ))}
-      </Picker>
-
-      <Picker
-        selectedValue={selectedIngredient}
-        onValueChange={setSelectedIngredient}
-        style={styles.picker}
-      >
-        <Picker.Item label="Todos los ingredientes" value="" />
-        {ingredients.map((ingredient) => (
-          <Picker.Item key={ingredient} label={ingredient} value={ingredient} />
-        ))}
-      </Picker>
-
-      <View style={styles.clearFiltersContainer}>
-        <Button title="Limpiar filtros" onPress={clearFilters} />
-      </View>
-
-      {filteredItems.length === 0 ? (
-        <View style={styles.noResults}>
-          <Text style={styles.noResultsText}>
-            No se han encontrado resultados para tu búsqueda.
-          </Text>
+        {/* Search bar */}
+        <View style={styles.searchContainer}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar productos..."
+            placeholderTextColor="#557a82"
+            value={searchText}
+            onChangeText={setSearchText}
+            clearButtonMode="while-editing"
+            selectionColor="#1e9ca4"
+          />
         </View>
-      ) : (
-        <FlatList
-          key={numColumns}
-          data={filteredItems}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-          numColumns={numColumns}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </View>
+
+        {/* Filters row */}
+        <View style={styles.filtersRow}>
+          <View style={styles.filterBlock}>
+            <View style={styles.customPickerContainer}>
+              <Picker
+                selectedValue={selectedType}
+                onValueChange={(value) => setSelectedType(value)}
+                style={styles.customPicker}
+                dropdownIconColor="#1e9ca4"
+              >
+                <Picker.Item label="Todos los tipos" value="" />
+                {types.map((type) => (
+                  <Picker.Item key={type} label={type} value={type} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.filterBlock}>
+            <View style={styles.customPickerContainer}>
+              <Picker
+                selectedValue={selectedIngredient}
+                onValueChange={(value) => setSelectedIngredient(value)}
+                style={styles.customPicker}
+                dropdownIconColor="#1e9ca4"
+              >
+                <Picker.Item label="Todos los ingredientes" value="" />
+                {ingredients.map((ingredient) => (
+                  <Picker.Item key={ingredient} label={ingredient} value={ingredient} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.clearButton} onPress={clearFilters} activeOpacity={0.85}>
+            <Text style={styles.clearButtonText}>🧹 Limpiar</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Product list */}
+        {filteredItems.length === 0 ? (
+          <View style={styles.noResults}>
+            <Text style={styles.noResultsText}>No se han encontrado resultados.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredItems}
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            numColumns={numColumns}
+            contentContainerStyle={styles.list}
+            columnWrapperStyle={styles.columnWrapper}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  searchBar: {
-    backgroundColor: "#fff",
-    padding: 10,
-    margin: 10,
-    borderRadius: 5,
+  container: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingTop: 24,
+    backgroundColor: "#cae9ef",
   },
-  picker: {
-    marginHorizontal: 10,
-    backgroundColor: "#fff",
-    borderRadius: 5,
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#003366", // azul oscuro
+    marginBottom: 18,
+    textAlign: "left",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    backgroundColor: "#ffffff", // fondo blanco para resaltar más
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    height: 46,
+    marginBottom: 18,
+    shadowColor: "#14757a",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  searchIcon: {
+    fontSize: 20,
+    marginRight: 12,
+    color: "#1e9ca4",
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 17,
+    color: "#14575b",
+    paddingVertical: 0,
+    fontWeight: "700",
+  },
+  filtersRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  filterBlock: {
+    flex: 1,
+    marginHorizontal: 6,
+  },
+  customPickerContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#1e9ca4",
+    overflow: "hidden",
+    height: 46,
+    justifyContent: "center",
+    shadowColor: "#1e9ca4",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  customPicker: {
+    height: 46,
+    color: "#14575b",
+    fontSize: 15,
+  },
+  clearButton: {
+    backgroundColor: "#1e9ca4",
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginLeft: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 120,
+    shadowColor: "#14575b",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  clearButtonText: {
+    color: "#cae9ef",
+    fontWeight: "800",
+    fontSize: 16,
   },
   card: {
-    flex: 1,
-    padding: 15,
-    margin: 10,
-    backgroundColor: "#003366",
-    borderRadius: 8,
+    width: cardWidth,
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 8,
+    marginRight: marginBetweenCards,
+    shadowColor: "#1e9ca4",
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  columnWrapper: {
+    justifyContent: "flex-start",
+    marginBottom: 8,
   },
   name: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
+    fontSize: 19,
+    fontWeight: "800",
+    color: "#14575b",
+    marginBottom: 8,
   },
   description: {
-    color: "#ccc",
-    fontSize: 14,
-    marginBottom: 5,
+    fontSize: 15,
+    color: "#4a7a87",
+    marginBottom: 10,
   },
   price: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1e9ca4",
   },
   noResults: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 28,
   },
   noResultsText: {
-    fontSize: 16,
-    color: "#FF0000",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  clearFiltersContainer: {
-    margin: 10,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#557a82",
   },
   list: {
-    paddingBottom: 20,
+    paddingBottom: 36,
   },
 });

@@ -11,7 +11,6 @@ export default function HomeScreen() {
         style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>Nuestras Bebidas</Text>
       <MenuCatalog />
     </View>
   );
@@ -20,12 +19,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#001F3F",
+    backgroundColor: "#cae9ef",
     paddingTop: 20,
   },
   logo: {
-    width: 200,
-    height: 60,
+    width: 300, // Aumenta el ancho
+    height: 100, // Aumenta la altura
     alignSelf: "center",
     marginBottom: 10,
   },
