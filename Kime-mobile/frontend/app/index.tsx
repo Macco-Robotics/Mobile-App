@@ -12,7 +12,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const checkLogin = async () => {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await AsyncStorage.getItem("token");
       setIsLogged(!!token);
       setLoading(false);
     };
@@ -45,7 +45,7 @@ export default function HomeScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Nuestras Bebidas</Text>
+          
           <MenuCatalog />
         </>
       ) :showRegister? (

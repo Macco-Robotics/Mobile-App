@@ -12,13 +12,13 @@ import {
   Dimensions,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
 import { filterMenus } from "../utils/filterMenus";
 
 const screenWidth = Dimensions.get("window").width;
 const numColumns = 4;
-const horizontalPadding = 18 * 2; // paddingHorizontal * 2
-const marginBetweenCards = 8; // space between cards horizontally
-
+const horizontalPadding = 18 * 2;
+const marginBetweenCards = 8;
 const cardWidth = (screenWidth - horizontalPadding - marginBetweenCards * (numColumns - 1)) / numColumns;
 
 type MenuItem = {
@@ -32,6 +32,8 @@ type MenuItem = {
 };
 
 export default function MenuCatalog() {
+  const router = useRouter();
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,7 @@ export default function MenuCatalog() {
   const renderItem = ({ item }: { item: MenuItem }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => console.log("Pressed:", item.display_name)}
+      onPress={() => router.push(`/bebida/${item._id}`)}
       activeOpacity={0.75}
     >
       <Text style={styles.name} numberOfLines={1}>
@@ -106,10 +108,8 @@ export default function MenuCatalog() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.container}>
-        {/* Title */}
         <Text style={styles.title}>Nuestras bebidas</Text>
 
-        {/* Search bar */}
         <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
@@ -123,7 +123,6 @@ export default function MenuCatalog() {
           />
         </View>
 
-        {/* Filters row */}
         <View style={styles.filtersRow}>
           <View style={styles.filterBlock}>
             <View style={styles.customPickerContainer}>
@@ -162,7 +161,6 @@ export default function MenuCatalog() {
           </TouchableOpacity>
         </View>
 
-        {/* Product list */}
         {filteredItems.length === 0 ? (
           <View style={styles.noResults}>
             <Text style={styles.noResultsText}>No se han encontrado resultados.</Text>
@@ -193,13 +191,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "900",
-    color: "#003366", // azul oscuro
+    color: "#003366",
     marginBottom: 18,
     textAlign: "left",
   },
   searchContainer: {
     flexDirection: "row",
-    backgroundColor: "#ffffff", // fondo blanco para resaltar más
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     paddingHorizontal: 14,
     alignItems: "center",
