@@ -79,7 +79,8 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      console.log(payload.questionnaire)
+      const response = await fetch('http://localhost:3000/api/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
