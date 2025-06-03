@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { filterMenus } from "../utils/filterMenus";
+import { useRouter } from "expo-router"; // ✅ Importar router para navegación
 
 type MenuItem = {
   _id: string;
@@ -32,6 +33,7 @@ export default function MenuCatalog() {
   const [types, setTypes] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [numColumns, setNumColumns] = useState(2);
+  const router = useRouter(); // ✅ Inicializar router
 
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
@@ -41,11 +43,9 @@ export default function MenuCatalog() {
         setMenuItems(menuData);
         setFilteredItems(menuData);
 
-        // Generar lista única de tipos
-        const uniqueTypes = Array.from(new Set(menuData.map((item: MenuItem) => item.type)));
-        setTypes(uniqueTypes); // Asignar los tipos al estado
+        const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
+        setTypes(uniqueTypes);
 
-        // Obtener ingredientes únicos
         const ingredientsResponse = await fetch("http://localhost:3000/api/inventory");
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
@@ -75,7 +75,7 @@ export default function MenuCatalog() {
   const renderItem = ({ item }: { item: MenuItem }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => console.log("Pressed:", item.display_name)}
+      onPress={() => router.push(`/bebida/${item._id}`)} // ✅ Redirige al detalle
     >
       <Text style={styles.name}>{item.display_name}</Text>
       <Text style={styles.description}>{item.description}</Text>
@@ -99,10 +99,9 @@ export default function MenuCatalog() {
         onChangeText={setSearchText}
       />
 
-      {/* Filtro por tipo */}
       <Picker
         selectedValue={selectedType}
-        onValueChange={(value) => setSelectedType(value)}
+        onValueChange={setSelectedType}
         style={styles.picker}
       >
         <Picker.Item label="Todos los tipos" value="" />
@@ -111,10 +110,9 @@ export default function MenuCatalog() {
         ))}
       </Picker>
 
-      {/* Filtro por ingrediente */}
       <Picker
         selectedValue={selectedIngredient}
-        onValueChange={(value) => setSelectedIngredient(value)}
+        onValueChange={setSelectedIngredient}
         style={styles.picker}
       >
         <Picker.Item label="Todos los ingredientes" value="" />
