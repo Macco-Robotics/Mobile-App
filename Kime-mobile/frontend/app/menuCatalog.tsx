@@ -37,14 +37,16 @@ export default function MenuCatalog() {
     const fetchMenuAndIngredients = async () => {
       try {
         const menuResponse = await fetch("http://localhost:3000/api/menu");
-        const menuData = await menuResponse.json();
+        const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);
         setFilteredItems(menuData);
 
+        // Generar lista única de tipos
         const uniqueTypes = Array.from(new Set(menuData.map((item: MenuItem) => item.type)));
-      
+        setTypes(uniqueTypes); // Asignar los tipos al estado
 
-        const ingredientsResponse = await fetch("http://localhost:3000/api/ingredients");
+        // Obtener ingredientes únicos
+        const ingredientsResponse = await fetch("http://localhost:3000/api/inventory");
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
         setIngredients(uniqueIngredients);
@@ -97,6 +99,7 @@ export default function MenuCatalog() {
         onChangeText={setSearchText}
       />
 
+      {/* Filtro por tipo */}
       <Picker
         selectedValue={selectedType}
         onValueChange={(value) => setSelectedType(value)}
@@ -108,6 +111,7 @@ export default function MenuCatalog() {
         ))}
       </Picker>
 
+      {/* Filtro por ingrediente */}
       <Picker
         selectedValue={selectedIngredient}
         onValueChange={(value) => setSelectedIngredient(value)}
