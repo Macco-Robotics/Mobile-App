@@ -9,7 +9,7 @@ const generateToken = id =>
 // @desc    Registrar nuevo usuario
 // @route   POST /api/users/register
 export const registerUser = async (req, res) => {
-  const { user, password, name, surname, email, postal_code, phone_number } = req.body;
+  const { user, password, name, surname, email, postal_code, phone_number, questionnaire } = req.body;
   try {
     const exists = await User.findOne({ $or: [{ user }, { email }] });
     if (exists) return res.status(400).json({ message: 'Usuario o email ya registrado' });
@@ -25,7 +25,7 @@ export const registerUser = async (req, res) => {
       email,
       postal_code,
       phone_number,
-      questionnaire: {}
+      questionnaire
     });
 
     res.status(201).json({

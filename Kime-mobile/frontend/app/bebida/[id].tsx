@@ -31,7 +31,7 @@ export default function BebidaDetalle() {
   useEffect(() => {
     const fetchBebida = async () => {
       try {
-        const response = await fetch(`http://192.168.1.43:3000/api/menu/product/${id}`);
+        const response = await fetch(`http://localhost:3000/api/menu/product/${id}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         setBebida(data);
