@@ -1,17 +1,58 @@
-// index.tsx
-import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import MenuCatalog from "./menuCatalog"; // Asegúrate de que la ruta sea correcta
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import LoginScreen from "./(login)/loginScreen";
+import RegisterLoginController from "./(registration)/register-loginController";
+import MenuCatalog from "./menuCatalog";
 
 export default function HomeScreen() {
+  const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem("userToken");
+      setIsLogged(!!token);
+      setLoading(false);
+    };
+    checkLogin();
+  }, []);
+
+  const handleLoginSuccess = async (token: string) => {
+    await AsyncStorage.setItem("token", token);
+    setIsLogged(true);
+  };
+
+  const handleGoToRegister = () => {
+    setShowRegister(true);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#A9D6E5" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../images/logomacco.png")} // Asegúrate de que la ruta sea válida
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <MenuCatalog />
+      {isLogged ? (
+        <>
+          <Image
+            source={require("../images/logomacco.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>Nuestras Bebidas</Text>
+          <MenuCatalog />
+        </>
+      ) :showRegister? (
+        <RegisterLoginController />
+      ) : (
+        <LoginScreen onLoginSuccess={handleLoginSuccess} onGoToRegister={handleGoToRegister}/>
+      )}
     </View>
   );
 }
