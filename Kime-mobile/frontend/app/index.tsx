@@ -1,6 +1,7 @@
+import { authEvents } from "@/utils/authEvents";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
 import LoginScreen from "./(login)/loginScreen";
 import RegisterLoginController from "./(registration)/register-loginController";
 import MenuCatalog from "./menuCatalog";
@@ -12,7 +13,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const checkLogin = async () => {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await AsyncStorage.getItem("token");
       setIsLogged(!!token);
       setLoading(false);
     };
@@ -22,6 +23,8 @@ export default function HomeScreen() {
   const handleLoginSuccess = async (token: string) => {
     await AsyncStorage.setItem("token", token);
     setIsLogged(true);
+    authEvents.emit("authChange"); 
+
   };
 
   const handleGoToRegister = () => {
@@ -45,7 +48,7 @@ export default function HomeScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Nuestras Bebidas</Text>
+          
           <MenuCatalog />
         </>
       ) :showRegister? (
@@ -60,12 +63,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#001F3F",
+    backgroundColor: "#cae9ef",
     paddingTop: 20,
   },
   logo: {
-    width: 200,
-    height: 60,
+    width: 300, // Aumenta el ancho
+    height: 100, // Aumenta la altura
     alignSelf: "center",
     marginBottom: 10,
   },
