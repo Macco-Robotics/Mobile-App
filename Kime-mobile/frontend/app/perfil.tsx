@@ -1,16 +1,16 @@
+import { Feather } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
 
 const EditPerfil = () => {
   const [form, setForm] = useState<any>(null);
@@ -75,6 +75,16 @@ const EditPerfil = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      router.replace('/');
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'No se pudo cerrar sesión');
+    }
+  }
+
   const renderField = (label: string, field: string, placeholder: string) => (
     <View style={styles.card} key={field}>
       <View style={styles.cardHeader}>
@@ -127,6 +137,9 @@ const EditPerfil = () => {
 
       <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Guardar Cambios</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -187,6 +200,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 10,
+    width: '100%',
+  },
+  logoutButton: {
+    backgroundColor: 'red',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 5,
     marginBottom: 40,
     width: '100%',
   },
@@ -195,4 +217,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  logoutButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  }
 });
