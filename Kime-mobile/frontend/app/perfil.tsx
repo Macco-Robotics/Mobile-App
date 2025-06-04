@@ -1,3 +1,4 @@
+import { authEvents } from '@/utils/authEvents';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -78,7 +79,9 @@ const EditPerfil = () => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('token');
+      authEvents.emit('authChange');
       router.replace('/');
+
     } catch (error) {
       console.log(error);
       Alert.alert('Error', 'No se pudo cerrar sesión');
