@@ -1,7 +1,4 @@
 import { authEvents } from '@/utils/authEvents';
-import { Feather } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,6 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
+import Header from './header'; // ✅ Asegúrate de que la ruta sea correcta
 
 const EditPerfil = () => {
   const [form, setForm] = useState<any>(null);
@@ -30,7 +31,6 @@ const EditPerfil = () => {
         const data = await res.json();
         setForm(data);
 
-        // Inicializamos editableFields en false para que no estén editables al cargar
         const initialEditable: Record<string, boolean> = {};
         Object.keys(data).forEach((key) => {
           initialEditable[key] = false;
@@ -46,7 +46,7 @@ const EditPerfil = () => {
   const toggleEdit = (field: string) => {
     setEditableFields((prev) => ({
       ...prev,
-      [field]: true, // Solo habilitamos edición al darle al lápiz, nunca deshabilitamos aquí
+      [field]: true,
     }));
   };
 
@@ -96,7 +96,7 @@ const EditPerfil = () => {
           <Feather
             name="edit"
             size={18}
-            color={editableFields[field] ? '#007BFF' : '#003366'}
+            color={editableFields[field] ? '#39adbe' : '#071e41'}
           />
         </TouchableOpacity>
       </View>
@@ -113,7 +113,7 @@ const EditPerfil = () => {
 
   if (!form) {
     return (
-      <Text style={{ marginTop: 50, textAlign: 'center', color: 'white' }}>
+      <Text style={{ marginTop: 50, textAlign: 'center', color: '#071e41' }}>
         Cargando...
       </Text>
     );
@@ -121,13 +121,14 @@ const EditPerfil = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Foto perfil */}
+      {/* Header con logo ya integrado */}
+      <Header />
+
+      {/* Foto de perfil */}
       <View style={styles.photoContainer}>
-        <View style={styles.photoCircle}>
-          {/* Aquí podría ir la imagen real en el futuro */}
-        </View>
-        <TouchableOpacity style={styles.cameraButton} onPress={() => { /* más adelante */ }}>
-          <Feather name="camera" size={24} color="#003366" />
+        <View style={styles.photoCircle}></View>
+        <TouchableOpacity style={styles.cameraButton} onPress={() => {}}>
+          <Feather name="camera" size={24} color="#071e41" />
         </TouchableOpacity>
       </View>
 
@@ -153,54 +154,58 @@ export default EditPerfil;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#001F3F',
+    backgroundColor: '#ccebf3',
     padding: 20,
     alignItems: 'center',
   },
   photoContainer: {
-    marginBottom: 30,
+    marginVertical: 20,
     alignItems: 'center',
   },
   photoCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#DCEBFB',
+    backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#003366',
+    borderColor: '#071e41',
   },
   cameraButton: {
     marginTop: 10,
-    backgroundColor: '#A9D6E5',
+    backgroundColor: '#39adbe',
     padding: 10,
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#DCEBFB',
-    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
     padding: 12,
     marginBottom: 12,
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#39adbe',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cardLabel: {
     fontWeight: 'bold',
-    color: '#003366',
+    color: '#071e41',
+    fontSize: 14,
   },
   cardInput: {
     color: '#000',
     paddingVertical: 4,
+    fontSize: 14,
   },
   button: {
-    backgroundColor: '#A9D6E5',
+    backgroundColor: '#39adbe',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 10,
@@ -216,7 +221,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonText: {
-    color: '#003366',
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },

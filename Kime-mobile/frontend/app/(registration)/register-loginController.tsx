@@ -16,7 +16,7 @@ const RegisterLoginController = () => {
   };
 
   return step === "register" ? (
-    <RegistrationForm onRegistrationComplete={handleRegistrationComplete} />
+    <RegistrationForm onRegistrationComplete={handleRegistrationComplete} userData={userData} />
   ) : (
     <PersonalizationScreen userData={userData} onGoBack={handleGoBack} />
   );
