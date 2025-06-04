@@ -1,16 +1,27 @@
 // app/_layout.tsx
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Slot } from 'expo-router';
-import Navbar from "./navbar";  // ajusta la ruta si es necesario
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Navbar from "./navbar"; // ajusta la ruta si es necesario
 
 export default function RootLayout() {
+  const [isLogged, setIsLogged] = useState<boolean>(false);
+  
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem('token');
+      setIsLogged(!!token);
+    }
+    checkToken();
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Aquí se renderiza la pantalla actual */}
       <Slot />
       {/* Navbar manual */}
-      <Navbar />
+      {isLogged && <Navbar />}
     </View>
   );
 }
