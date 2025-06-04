@@ -6,7 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type RegistrationFormProps = {
   onRegistrationComplete: (data: any) => void;
@@ -83,11 +85,15 @@ const initialFormData = {
   postalCode: "",
   phone: "",
   description: "",
+  image: "", // Campo para URL foto perfil
 };
 
-const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete, userData }) => {
+const RegistrationForm: React.FC<RegistrationFormProps> = ({
+  onRegistrationComplete,
+  userData,
+}) => {
   const [formData, setFormData] = useState(userData || initialFormData);
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
+  const [errors, setErrors] = React.useState<Partial<Record<keyof typeof formData, string>>>({});
 
   const handleChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
@@ -110,6 +116,19 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
       <View style={styles.formContainer}>
         <Text style={styles.title}>Registro de Usuario</Text>
 
+        {/* Foto de perfil con icono de cámara debajo */}
+        <View style={styles.photoSection}>
+          <View style={styles.photoCircle}>
+            {formData.image ? (
+              <Image source={{ uri: formData.image }} style={styles.photoCircle} />
+            ) : null}
+          </View>
+          <TouchableOpacity style={styles.cameraIconContainer} activeOpacity={0.7}>
+            <MaterialIcons name="photo-camera" size={28} color="#A9D6E5" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Inputs */}
         <TextInput
           style={styles.input}
           placeholder="Nombre de usuario"
@@ -143,6 +162,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           placeholderTextColor="#A9D6E5"
           value={formData.email}
           onChangeText={(value) => handleChange("email", value)}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
         {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
@@ -171,6 +192,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           placeholderTextColor="#A9D6E5"
           value={formData.postalCode}
           onChangeText={(value) => handleChange("postalCode", value)}
+          keyboardType="numeric"
         />
         {errors.postalCode && <Text style={styles.errorText}>{errors.postalCode}</Text>}
 
@@ -180,6 +202,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationCompl
           placeholderTextColor="#A9D6E5"
           value={formData.phone}
           onChangeText={(value) => handleChange("phone", value)}
+          keyboardType="phone-pad"
         />
         {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
@@ -205,18 +228,40 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: "center",
-    alignItems: "stretch", // Permite que los hijos ocupen todo el ancho
+    alignItems: "stretch",
     padding: 20,
     backgroundColor: "#001F3F",
   },
   formContainer: {
-    width: "100%", // Asegura que el View padre llene el ancho
+    width: "100%",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#A9D6E5",
     marginBottom: 20,
+    alignSelf: "center",
+  },
+  photoSection: {
+    alignItems: "center",
+    marginBottom: 25,
+  },
+  photoCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#002B5B",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  cameraIconContainer: {
+    marginTop: 10,
+    backgroundColor: "#002B5B",
+    padding: 12,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
   },
   input: {
     width: "100%",
@@ -224,7 +269,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "#A9D6E5",
-    borderRadius: 5,
+    borderRadius: 8,
     color: "#FFFFFF",
     backgroundColor: "#002B5B",
   },
@@ -235,7 +280,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#A9D6E5",
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
   },
