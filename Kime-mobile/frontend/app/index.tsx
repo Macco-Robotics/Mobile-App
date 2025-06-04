@@ -1,6 +1,7 @@
+import { authEvents } from "@/utils/authEvents";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
 import LoginScreen from "./(login)/loginScreen";
 import RegisterLoginController from "./(registration)/register-loginController";
 import MenuCatalog from "./menuCatalog";
@@ -23,6 +24,8 @@ export default function HomeScreen() {
   const handleLoginSuccess = async (token: string) => {
     await AsyncStorage.setItem("token", token);
     setIsLogged(true);
+    authEvents.emit("authChange"); 
+
   };
 
   const handleGoToRegister = () => {
