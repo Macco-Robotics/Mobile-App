@@ -1,9 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import LoginScreen from "./(login)/loginScreen";
 import RegisterLoginController from "./(registration)/register-loginController";
 import MenuCatalog from "./menuCatalog";
+import Header from "./header"; // 👈 Asegúrate de que la ruta sea correcta
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
@@ -40,18 +41,16 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {isLogged ? (
         <>
-          <Image
-            source={require("../images/logomacco.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          
+          <Header />
           <MenuCatalog />
         </>
-      ) :showRegister? (
+      ) : showRegister ? (
         <RegisterLoginController />
       ) : (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} onGoToRegister={handleGoToRegister}/>
+        <LoginScreen
+          onLoginSuccess={handleLoginSuccess}
+          onGoToRegister={handleGoToRegister}
+        />
       )}
     </View>
   );
@@ -61,20 +60,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#cae9ef",
-    paddingTop: 20,
-  },
-  logo: {
-    width: 300, // Aumenta el ancho
-    height: 100, // Aumenta la altura
-    alignSelf: "center",
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 16,
-    letterSpacing: 1,
   },
 });
