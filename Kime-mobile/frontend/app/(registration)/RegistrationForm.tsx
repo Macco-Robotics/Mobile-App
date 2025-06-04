@@ -10,6 +10,7 @@ import {
 
 type RegistrationFormProps = {
   onRegistrationComplete: (data: any) => void;
+  userData?: typeof initialFormData;
 };
 
 const validateFormData = (formData: typeof initialFormData) => {
@@ -84,8 +85,8 @@ const initialFormData = {
   description: "",
 };
 
-const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete }) => {
-  const [formData, setFormData] = useState(initialFormData);
+const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegistrationComplete, userData }) => {
+  const [formData, setFormData] = useState(userData || initialFormData);
   const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
 
   const handleChange = (name: string, value: string) => {
