@@ -12,7 +12,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const checkLogin = async () => {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await AsyncStorage.getItem("token");
       setIsLogged(!!token);
       setLoading(false);
     };
