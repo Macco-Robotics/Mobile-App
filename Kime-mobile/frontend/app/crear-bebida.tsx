@@ -1,11 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
-import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   ScrollView,
@@ -70,10 +68,12 @@ export default function DrinkCreationForm() {
   }, [setValue]);
 
   const onSubmit = async (formData: FormData) => {
+    setLoading(true);
     try {
       const validIngredients = formData.ingredients.filter(item => item.ingredient && item.quantity !== '');
       if (validIngredients.length < 2) {
         Alert.alert('Error', 'Debes añadir al menos 2 ingredientes completos.');
+        setLoading(false);
         return;
       }
 
@@ -89,46 +89,51 @@ export default function DrinkCreationForm() {
         }))
       };
 
-      setLoading(true);
       const token = await AsyncStorage.getItem('token');
       await axios.post('http://localhost:3000/api/drink', payload, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setLoading(false);
 
       Alert.alert('Éxito', 'Bebida creada con éxito');
-      navigation.navigate('index');
     } catch (err) {
-      setLoading(false);
       console.error(err);
       Alert.alert('Error', 'No se pudo crear la bebida');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.wrapper}>
-      <Modal visible={loading} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ActivityIndicator size="large" color="#2ECC40" />
-            <Text style={styles.loadingText}>Guardando bebida...</Text>
-          </View>
-        </View>
-      </Modal>
+    <View style={styles.container}>
+      <Header title="Crear Bebida" />
 
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.label}>Nombre:</Text>
-        <Controller
-          control={control}
-          name="name"
-          rules={{ required: 'Este campo es obligatorio' }}
-          render={({ field: { onChange, value } }) => (
-            <>
-              <TextInput style={styles.input} onChangeText={onChange} value={value} />
-              {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
-            </>
-          )}
-        />
+      {/* MODAL DE CARGA */}
+      {loading && (
+        <Modal transparent animationType="fade" visible={loading}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Guardando bebida...</Text>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Información General</Text>
+
+          <Text style={styles.label}>Nombre:</Text>
+          <Controller
+            control={control}
+            name="name"
+            rules={{ required: 'Este campo es obligatorio' }}
+            render={({ field: { onChange, value } }) => (
+              <>
+                <TextInput style={styles.input} onChangeText={onChange} value={value} placeholder="Ej. Mojito" />
+                {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
+              </>
+            )}
+          />
 
           <Text style={styles.label}>Descripción:</Text>
           <Controller
@@ -245,10 +250,6 @@ export default function DrinkCreationForm() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: '#001F3F',
-  },
   container: {
     flex: 1,
     backgroundColor: "#cae9ef",
@@ -305,12 +306,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#fff',
   },
-  label: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
   picker: {
     height: 48,
     width: '100%',
@@ -353,5 +348,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    elevation: 10,
+  },
+  modalText: {
+    fontSize: 18,
+    color: '#071e41',
+    fontWeight: 'bold',
   },
 });
