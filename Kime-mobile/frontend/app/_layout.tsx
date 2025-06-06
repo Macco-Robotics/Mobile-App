@@ -1,10 +1,10 @@
-// app/_layout.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Slot, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
+
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { authEvents } from "../utils/authEvents";
-import Navbar from "./navbar"; // ajusta la ruta si es necesario
+import { authEvents } from '../utils/authEvents';
+import Navbar from './navbar';
 
 export default function RootLayout() {
   const [isLogged, setIsLogged] = useState<boolean>(false);
@@ -13,8 +13,7 @@ export default function RootLayout() {
     const token = await AsyncStorage.getItem('token');
     setIsLogged(!!token);
   };
-  
-  // Esta función se ejecuta cada vez que esta pantalla es visible
+
   useFocusEffect(
     React.useCallback(() => {
       checkToken();
@@ -22,17 +21,19 @@ export default function RootLayout() {
   );
 
   useEffect(() => {
-    authEvents.on("authChange", checkToken);
+    authEvents.on('authChange', checkToken);
     return () => {
-      authEvents.off("authChange", checkToken);
+      authEvents.off('authChange', checkToken);
     };
   }, []);
 
   return (
     <View style={styles.container}>
-      {/* Aquí se renderiza la pantalla actual */}
-      <Slot />
-      {/* Navbar manual */}
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
       {isLogged && <Navbar />}
     </View>
   );
@@ -41,6 +42,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // o tu color de fondo
+    backgroundColor: '#fff',
   },
 });

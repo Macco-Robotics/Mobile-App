@@ -1,7 +1,9 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import {
   Alert,
@@ -14,9 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import Header from './header';
-import { Picker } from '@react-native-picker/picker';
 
 type IngredientItem = {
   ingredient: string;
@@ -33,7 +33,6 @@ type FormData = {
 };
 
 export default function DrinkCreationForm() {
-  const navigation = useNavigation();
   const { control, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       name: '',
@@ -95,6 +94,7 @@ export default function DrinkCreationForm() {
       });
 
       Alert.alert('Éxito', 'Bebida creada con éxito');
+      router.replace('/');
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'No se pudo crear la bebida');
@@ -107,7 +107,6 @@ export default function DrinkCreationForm() {
     <View style={styles.container}>
       <Header title="Crear Bebida" />
 
-      {/* MODAL DE CARGA */}
       {loading && (
         <Modal transparent animationType="fade" visible={loading}>
           <View style={styles.modalOverlay}>
