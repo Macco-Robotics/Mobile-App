@@ -15,7 +15,7 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/published', getAllPublishedDrinks);
+router.get('/published', authMiddleware, getAllPublishedDrinks);
 router.get('/:id', authMiddleware, getDrinkById);
 router.get('/me/created', authMiddleware, getCreatedDrinksByCurrentUser);
 router.get('/me/saved', authMiddleware, getUserSavedDrinks);
