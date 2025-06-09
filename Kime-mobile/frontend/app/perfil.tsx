@@ -2,6 +2,7 @@ import { useImageUpload } from '@/hooks/useImageUpload';
 import { authEvents } from '@/utils/authEvents';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -15,7 +16,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Header from './header';
+import Header from './header'; // ✅ Asegúrate de que la ruta sea correcta
+
 
 const EditPerfil = () => {
   const [form, setForm] = useState<any>(null);
@@ -141,6 +143,20 @@ const EditPerfil = () => {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header con logo ya integrado */}
       <Header />
+      <View style={{ alignItems: 'flex-end', margin: 16 }}>
+        <Picker
+          selectedValue=""
+          onValueChange={(value) => {
+            if (value) router.push(`/createdSavedDrinks?type=${value}`);
+          }}
+          style={{ width: 200, color: 'white', backgroundColor: '#003366', borderRadius: 8 }}
+          dropdownIconColor="#fff"
+        >
+          <Picker.Item label="Ver bebidas..." value="" enabled={false} />
+          <Picker.Item label="Bebidas creadas" value="created" />
+          <Picker.Item label="Bebidas guardadas" value="saved" />
+        </Picker>
+      </View>
 
       {/* Foto de perfil */}
       <View style={styles.photoContainer}>
