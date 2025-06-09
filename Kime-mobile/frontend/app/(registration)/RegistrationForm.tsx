@@ -7,8 +7,46 @@ import {
   TouchableOpacity,
   View,
   Image,
+  FlatList,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+
+const flags: Record<string, any> = {
+  IT: require("../../images/it.png"),
+  AL: require("../../images/al.png"),
+  ES: require("../../images/es.png"),
+  PT: require("../../images/pt.png"),
+  BE: require("../../images/be.png"),
+  NL: require("../../images/nl.png"),
+  US: require("../../images/us.png"),
+  IN: require("../../images/in.webp"),
+  JP: require("../../images/jp.png"),
+};
+
+const countries = [
+  { code: "IT", callingCode: "39", name: "Italia" },
+  { code: "AL", callingCode: "355", name: "Albania" },
+  { code: "ES", callingCode: "34", name: "España" },
+  { code: "PT", callingCode: "351", name: "Portugal" },
+  { code: "BE", callingCode: "32", name: "Bélgica" },
+  { code: "NL", callingCode: "31", name: "Holanda" },
+  { code: "US", callingCode: "1", name: "Estados Unidos" },
+  { code: "IN", callingCode: "91", name: "India" },
+  { code: "JP", callingCode: "81", name: "Japón" },
+];
+
+const initialFormData = {
+  user: "",
+  name: "",
+  lastName: "",
+  email: "",
+  password: "",
+  address: "",
+  postalCode: "",
+  phone: "",
+  description: "",
+  image: "",
+};
 
 type RegistrationFormProps = {
   onRegistrationComplete: (data: any) => void;
@@ -75,25 +113,14 @@ const validateFormData = (formData: typeof initialFormData) => {
   return newErrors;
 };
 
-const initialFormData = {
-  user: "",
-  name: "",
-  lastName: "",
-  email: "",
-  password: "",
-  address: "",
-  postalCode: "",
-  phone: "",
-  description: "",
-  image: "", // Campo para URL foto perfil
-};
-
 const RegistrationForm: React.FC<RegistrationFormProps> = ({
   onRegistrationComplete,
   userData,
 }) => {
   const [formData, setFormData] = useState(userData || initialFormData);
-  const [errors, setErrors] = React.useState<Partial<Record<keyof typeof formData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
+  const [selectedCountry, setSelectedCountry] = useState(countries[2]); // España por defecto
+  const [showCountries, setShowCountries] = useState(false);
 
   const handleChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
@@ -101,14 +128,13 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
   const handleContinue = () => {
     const newErrors = validateFormData(formData);
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
     setErrors({});
-    onRegistrationComplete(formData);
+    onRegistrationComplete({ ...formData, phone: `+${selectedCountry.callingCode}${formData.phone}` });
   };
 
   return (
@@ -116,7 +142,6 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
       <View style={styles.formContainer}>
         <Text style={styles.title}>Registro de Usuario</Text>
 
-        {/* Foto de perfil con icono de cámara debajo */}
         <View style={styles.photoSection}>
           <View style={styles.photoCircle}>
             {formData.image ? (
@@ -128,7 +153,6 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Inputs */}
         <TextInput
           style={styles.input}
           placeholder="Nombre de usuario"
@@ -196,15 +220,59 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
         />
         {errors.postalCode && <Text style={styles.errorText}>{errors.postalCode}</Text>}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono"
-          placeholderTextColor="#A9D6E5"
-          value={formData.phone}
-          onChangeText={(value) => handleChange("phone", value)}
-          keyboardType="phone-pad"
-        />
-        {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+        {/* Teléfono con prefijo desplegable inline */}
+        <View style={{ marginBottom: 15 }}>
+          <View style={styles.phoneContainer}>
+            <TouchableOpacity
+              style={styles.prefixContainer}
+              onPress={() => setShowCountries(!showCountries)}
+              activeOpacity={0.7}
+            >
+              <Image source={flags[selectedCountry.code]} style={styles.flag} />
+              <Text style={styles.prefixText}>+{selectedCountry.callingCode}</Text>
+              <MaterialIcons
+                name={showCountries ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                size={20}
+                color="#A9D6E5"
+                style={{ marginLeft: 5 }}
+              />
+            </TouchableOpacity>
+            <TextInput
+              style={[styles.input, { flex: 1, marginLeft: 10 }]}
+              placeholder="Teléfono"
+              placeholderTextColor="#A9D6E5"
+              value={formData.phone}
+              onChangeText={(value) => handleChange("phone", value)}
+              keyboardType="phone-pad"
+            />
+          </View>
+          {showCountries && (
+            <View style={styles.dropdownContainer}>
+              <FlatList
+                data={countries}
+                keyExtractor={(item) => item.code}
+                showsVerticalScrollIndicator
+                nestedScrollEnabled
+                style={{ maxHeight: 150 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.countryItem}
+                    onPress={() => {
+                      setSelectedCountry(item);
+                      setShowCountries(false);
+                    }}
+                  >
+                    <Image source={flags[item.code]} style={styles.flag} />
+                    <Text style={styles.countryText}>
+                      {item.name} (+{item.callingCode})
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          )}
+          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+        </View>
 
         <TextInput
           style={[styles.input, styles.textArea]}
@@ -216,7 +284,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
           numberOfLines={4}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleContinue}>
+        <TouchableOpacity style={styles.button} onPress={handleContinue} activeOpacity={0.8}>
           <Text style={styles.buttonText}>Continuar</Text>
         </TouchableOpacity>
       </View>
@@ -264,14 +332,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 15,
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: "#A9D6E5",
     borderRadius: 8,
     color: "#FFFFFF",
     backgroundColor: "#002B5B",
+    marginBottom: 15,
   },
   textArea: {
     height: 80,
@@ -294,6 +363,48 @@ const styles = StyleSheet.create({
     marginTop: -10,
     marginBottom: 10,
     fontSize: 14,
+  },
+  phoneContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10, // si usas React Native >= 0.71, para separación entre prefijo y input
+  },
+  prefixContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 9,
+    paddingHorizontal: 9,
+    borderWidth: 1,
+    borderColor: "#A9D6E5",
+    borderRadius: 8,
+    backgroundColor: "#002B5B",
+    height: 42, // altura fija para igualar con input
+    marginTop:-13,
+  },
+  flag: {
+    width: 26,
+    height: 18,
+    resizeMode: "contain",
+    marginRight: 6,
+  },
+  prefixText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#A9D6E5",
+    borderRadius: 8,
+    backgroundColor: "#002B5B",
+    marginTop: 5,
+  },
+  countryItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+  },
+  countryText: {
+    color: "#FFFFFF",
   },
 });
 
