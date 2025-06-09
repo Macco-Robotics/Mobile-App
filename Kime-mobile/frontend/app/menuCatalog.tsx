@@ -1,18 +1,18 @@
+import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
+  View
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { useRouter } from "expo-router";
 import { filterMenus } from "../utils/filterMenus";
 
 const screenWidth = Dimensions.get("window").width;
