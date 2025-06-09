@@ -1,14 +1,14 @@
+import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
   ActivityIndicator,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 
 type Bebida = {
   _id: string;
@@ -31,7 +31,7 @@ export default function BebidaDetalle() {
   useEffect(() => {
     const fetchBebida = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/menu/product/${id}`);
+        const response = await fetch(`http:/${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu/product/${id}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         setBebida(data);

@@ -1,7 +1,13 @@
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { authEvents } from '@/utils/authEvents';
+import { Feather } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,21 +15,30 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
-import Header from './header'; // ✅ Asegúrate de que la ruta sea correcta
+import Header from './header';
 
 const EditPerfil = () => {
   const [form, setForm] = useState<any>(null);
   const [editableFields, setEditableFields] = useState<Record<string, boolean>>({});
   const router = useRouter();
+  const {
+    imageUri,
+    cloudinaryUrl,
+    uploading,
+    pickImage,
+    takePhoto
+  } = useImageUpload();
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+
+  const handleImagePicker = () => {
+    setModalVisible(true);
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/api/user/profile', {
+        const res = await fetch(`http:/${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -55,9 +70,11 @@ const EditPerfil = () => {
   };
 
   const handleSave = async () => {
+    if (cloudinaryUrl) form.image = cloudinaryUrl;
+
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/api/user/profile', {
+      const res = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -120,14 +137,23 @@ const EditPerfil = () => {
   }
 
   return (
+
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header con logo ya integrado */}
       <Header />
 
       {/* Foto de perfil */}
       <View style={styles.photoContainer}>
-        <View style={styles.photoCircle}></View>
-        <TouchableOpacity style={styles.cameraButton} onPress={() => {}}>
+        {(imageUri || cloudinaryUrl || form?.image) ? (
+          <Image
+            source={{ uri: imageUri || cloudinaryUrl || form.image }}
+            style={styles.photoCircle}
+          />
+        ) : (
+          <View style={styles.photoCircle} />
+        )}
+
+        <TouchableOpacity style={styles.cameraButton} onPress={handleImagePicker}>
           <Feather name="camera" size={24} color="#071e41" />
         </TouchableOpacity>
       </View>
@@ -140,11 +166,49 @@ const EditPerfil = () => {
       {renderField('Dirección', 'description', 'Dirección')}
 
       <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Guardar Cambios</Text>
+        <Text style={styles.buttonText}>
+          {uploading ? 'Subiendo imagen...' : 'Guardar Cambios'}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
       </TouchableOpacity>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Subir foto</Text>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setModalVisible(false);
+                takePhoto();
+              }}
+            >
+              <Text style={styles.modalOptionText}>Cámara</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setModalVisible(false);
+                pickImage();
+              }}
+            >
+              <Text style={styles.modalOptionText}>Galería</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalOption, { backgroundColor: '#ccc' }]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={[styles.modalOptionText, { color: '#333' }]}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -229,5 +293,39 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#071e41',
+  },
+  modalOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#39adbe',
+    borderRadius: 8,
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalOptionText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
 });

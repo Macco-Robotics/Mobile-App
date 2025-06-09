@@ -39,4 +39,7 @@ yarn-error.*
 #backend env
 backend/.env
 
+#frontend env
+frontend/.env
+
 app-example

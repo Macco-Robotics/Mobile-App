@@ -1,18 +1,18 @@
+import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
+  View,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { useRouter } from "expo-router";
 import { filterMenus } from "../utils/filterMenus";
 
 const screenWidth = Dimensions.get("window").width;
@@ -46,7 +46,7 @@ export default function MenuCatalog() {
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
       try {
-        const menuResponse = await fetch("http://localhost:3000/api/menu");
+        const menuResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`);
         const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);
         setFilteredItems(menuData);
@@ -54,7 +54,7 @@ export default function MenuCatalog() {
         const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
         setTypes(uniqueTypes);
 
-        const ingredientsResponse = await fetch("http://localhost:3000/api/inventory");
+        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`);
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
         setIngredients(uniqueIngredients);

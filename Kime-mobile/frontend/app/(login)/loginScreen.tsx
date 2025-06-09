@@ -19,7 +19,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
     }
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/api/user/login", {
+      const response = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
