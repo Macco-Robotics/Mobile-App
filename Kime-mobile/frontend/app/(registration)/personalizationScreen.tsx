@@ -13,12 +13,13 @@ type PersonalizationScreenProps = {
     postalCode: string;
     phone: string;
     description: string;
+    image: string;
   }
 };
 
 const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack, userData }) => {
   const [step, setStep] = useState(1);
-
+  
   // Estados individuales
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [selectedAlcoholPreference, setSelectedAlcoholPreference] = useState<string | null>(null);
@@ -72,15 +73,14 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
       email: userData.email,
       postal_code: userData.postalCode,
       phone_number: userData.phone,
-      image: "",
+      image: userData.image,
       role: 'user',
       description: userData.description,
       questionnaire
     }
 
     try {
-      console.log(payload.questionnaire)
-      const response = await fetch('http://localhost:3000/api/user/register', {
+      const response = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

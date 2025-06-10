@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { filterMenus } from "../utils/filterMenus";
 
@@ -46,7 +46,7 @@ export default function MenuCatalog() {
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
       try {
-        const menuResponse = await fetch("http://localhost:3000/api/menu");
+        const menuResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`);
         const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);
         setFilteredItems(menuData);
@@ -54,7 +54,7 @@ export default function MenuCatalog() {
         const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
         setTypes(uniqueTypes);
 
-        const ingredientsResponse = await fetch("http://localhost:3000/api/inventory");
+        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`);
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
         setIngredients(uniqueIngredients);
