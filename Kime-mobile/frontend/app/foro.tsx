@@ -32,7 +32,7 @@ export default function PublicDrinksScreen() {
   const fetchPublicDrinks = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/drink/published', {
+      const response = await axios.get(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/drink/published`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDrinks(response.data);
@@ -76,7 +76,7 @@ export default function PublicDrinksScreen() {
   const likeDrink = async (drinkId: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.post(`http://localhost:3000/api/drink/${drinkId}/like`, {}, {
+      await axios.post(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/drink/${drinkId}/like`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPublicDrinks();
@@ -88,7 +88,7 @@ export default function PublicDrinksScreen() {
   const saveDrink = async (drinkId: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.post(`http://localhost:3000/api/drink/${drinkId}/save`, {}, {
+      await axios.post(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/drink/${drinkId}/save`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPublicDrinks();

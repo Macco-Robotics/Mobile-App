@@ -44,7 +44,7 @@ export default function CreatedSavedDrinks() {
     try {
       const token = await AsyncStorage.getItem('token');
       const endpoint = type === 'saved' ? '/api/drink/me/saved' : '/api/drink/me/created';
-      const response = await axios.get(`http://localhost:3000${endpoint}`, {
+      const response = await axios.get(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDrinks(response.data);

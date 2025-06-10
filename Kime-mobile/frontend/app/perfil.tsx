@@ -40,7 +40,7 @@ const EditPerfil = () => {
     const loadProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await fetch(`http:/${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/profile`, {
+        const res = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

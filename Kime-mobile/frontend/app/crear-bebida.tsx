@@ -51,7 +51,7 @@ export default function DrinkCreationForm() {
     const fetchIngredients = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/ingredient', {
+        const response = await axios.get(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/ingredient`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setIngredientOptions(response.data);
@@ -63,7 +63,7 @@ export default function DrinkCreationForm() {
   }, []);
 
   useEffect(() => {
-    setValue('image', 'http://localhost:3000/images/bebidaPlaceholder.png');
+    setValue('image', `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/images/bebidaPlaceholder.png`);
   }, [setValue]);
 
   const onSubmit = async (formData: FormData) => {
@@ -89,7 +89,7 @@ export default function DrinkCreationForm() {
       };
 
       const token = await AsyncStorage.getItem('token');
-      await axios.post('http://localhost:3000/api/drink', payload, {
+      await axios.post(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/drink`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

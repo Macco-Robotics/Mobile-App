@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import { useImageUpload } from "@/hooks/useImageUpload";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
+  FlatList,
+  Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Image,
-  FlatList,
+  View
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 
 const flags: Record<string, any> = {
   IT: require("../../images/it.png"),
@@ -121,6 +123,24 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
   const [selectedCountry, setSelectedCountry] = useState(countries[2]); // España por defecto
   const [showCountries, setShowCountries] = useState(false);
+  const {
+    imageUri,
+    cloudinaryUrl,
+    uploading,
+    pickImage,
+    takePhoto
+  } = useImageUpload();
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (cloudinaryUrl) {
+      setFormData((prev) => ({ ...prev, image: cloudinaryUrl }));
+    }
+  }, [cloudinaryUrl]);
+
+  const handleImagePicker = () => {
+    setModalVisible(true);
+  };
 
   const handleChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
@@ -132,7 +152,6 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
       setErrors(newErrors);
       return;
     }
-
     setErrors({});
     onRegistrationComplete({ ...formData, phone: `+${selectedCountry.callingCode}${formData.phone}` });
   };
@@ -142,14 +161,18 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
       <View style={styles.formContainer}>
         <Text style={styles.title}>Registro de Usuario</Text>
 
-        <View style={styles.photoSection}>
-          <View style={styles.photoCircle}>
-            {formData.image ? (
-              <Image source={{ uri: formData.image }} style={styles.photoCircle} />
-            ) : null}
-          </View>
-          <TouchableOpacity style={styles.cameraIconContainer} activeOpacity={0.7}>
-            <MaterialIcons name="photo-camera" size={28} color="#A9D6E5" />
+        <View style={styles.photoContainer}>
+          {(imageUri || cloudinaryUrl || formData?.image) ? (
+            <Image
+              source={{ uri: imageUri || cloudinaryUrl || formData.image }}
+              style={styles.photoCircle}
+            />
+          ) : (
+            <View style={styles.photoCircle} />
+          )}
+
+          <TouchableOpacity style={styles.cameraButton} onPress={handleImagePicker}>
+            <Feather name="camera" size={24} color="#071e41" />
           </TouchableOpacity>
         </View>
 
@@ -284,10 +307,52 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
           numberOfLines={4}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleContinue} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>Continuar</Text>
+        <TouchableOpacity
+          style={[styles.button, uploading && { opacity: 0.5 }]}
+          onPress={handleContinue}
+          disabled={uploading}
+        >
+          <Text style={styles.buttonText}>
+            {uploading ? "Subiendo imagen..." : "Continuar"}
+          </Text>
         </TouchableOpacity>
       </View>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Subir foto</Text>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setModalVisible(false);
+                takePhoto();
+              }}
+            >
+              <Text style={styles.modalOptionText}>Cámara</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setModalVisible(false);
+                pickImage();
+              }}
+            >
+              <Text style={styles.modalOptionText}>Galería</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalOption, { backgroundColor: '#ccc' }]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={[styles.modalOptionText, { color: '#333' }]}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -310,9 +375,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignSelf: "center",
   },
-  photoSection: {
-    alignItems: "center",
-    marginBottom: 25,
+  photoContainer: {
+    marginVertical: 20,
+    alignItems: 'center',
   },
   photoCircle: {
     width: 90,
@@ -330,6 +395,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
+  },
+  cameraButton: {
+    marginTop: 10,
+    backgroundColor: '#39adbe',
+    padding: 10,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
@@ -379,7 +452,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#002B5B",
     height: 42, // altura fija para igualar con input
-    marginTop:-13,
+    marginTop: -13,
   },
   flag: {
     width: 26,
@@ -405,6 +478,39 @@ const styles = StyleSheet.create({
   },
   countryText: {
     color: "#FFFFFF",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#071e41',
+  },
+  modalOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#39adbe',
+    borderRadius: 8,
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalOptionText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
