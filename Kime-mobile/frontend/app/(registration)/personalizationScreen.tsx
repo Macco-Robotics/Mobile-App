@@ -1,3 +1,6 @@
+import { authEvents } from "@/utils/authEvents";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -90,6 +93,11 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
 
       if (response.ok) {
         alert('Usuario registrado correctamente');
+        const result = await response.json();
+        await AsyncStorage.setItem('token', result.token);
+        authEvents.emit('authChange');
+        router.replace('/');
+
       } else {
         const error = await response.json();
         console.log(error);
