@@ -19,7 +19,7 @@ const questionnaireSchema = new mongoose.Schema({
     type: String, 
     enum: [
       "Yes, I love it",
-      "Only small amounts",
+      "Only in small amounts",
       "No, I avoid caffeine"
     ],
     required: true

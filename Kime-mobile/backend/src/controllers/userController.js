@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
-// Helper para JWT
+
 const generateToken = id =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
