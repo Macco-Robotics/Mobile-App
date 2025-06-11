@@ -32,6 +32,8 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
   const [selectedNotifications, setSelectedNotifications] = useState<string | null>(null);
   const [selectedNotificationTypes, setSelectedNotificationTypes] = useState<string[]>([]);
 
+  const [notificationError, setNotificationError] = useState<string>();
+
   const handleToggle = (
     state: string[],
     setState: React.Dispatch<React.SetStateAction<string[]>>,
@@ -80,6 +82,16 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
       role: 'user',
       description: userData.description,
       questionnaire
+    }
+
+    if(selectedNotifications === 'No' && selectedNotificationTypes.length > 0){
+      setNotificationError('Habilita las notificaciones');
+      return;
+    }
+
+    if (selectedNotifications === 'Yes' && selectedNotificationTypes.length === 0){
+      setNotificationError('Elige al menos un tipo de notificación');
+      return;
     }
 
     try {
@@ -202,6 +214,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
               <Text style={styles.optionText}>{type}</Text>
             </TouchableOpacity>
           ))}
+          {notificationError && <Text style={styles.errorText}>{notificationError}</Text>}
         </View>
       )}
 
@@ -273,6 +286,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+  errorText: {
+    color: "#FF6B6B",
+    marginTop: -10,
+    marginBottom: 10,
+    fontSize: 14,
+  }
 });
 
 export default PersonalizationScreen;

@@ -51,7 +51,6 @@ export const useImageUpload = () => {
     }
 
     const uploadToCloudinary = async (uri: string, type: string) => {
-        console.log(uri);
         try {
             setUploading(true);
             const formData = new FormData();
@@ -90,6 +89,8 @@ export const useImageUpload = () => {
         imageUri,
         cloudinaryUrl,
         uploading,
+        setImageUri,
+        setCloudinaryUrl,
         pickImage,
         takePhoto
     };
