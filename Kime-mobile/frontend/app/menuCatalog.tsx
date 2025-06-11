@@ -31,7 +31,7 @@ type MenuItem = {
   recipe: { name: string; quantity: number; unit?: string }[];
 };
 
-export default function MenuCatalog() {
+export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) {
   const router = useRouter();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -46,7 +46,7 @@ export default function MenuCatalog() {
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
       try {
-        const menuResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`);
+        const menuResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu?slug=${selectedSlug}`);
         const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);
         setFilteredItems(menuData);
@@ -69,9 +69,35 @@ export default function MenuCatalog() {
   }, []);
 
   useEffect(() => {
-    const filtered = filterMenus(menuItems, searchText, selectedType, selectedIngredient);
-    setFilteredItems(filtered);
-  }, [menuItems, searchText, selectedType, selectedIngredient]);
+    const fetchMenuAndIngredients = async () => {
+      if (!selectedSlug) return;
+
+      setLoading(true);
+      try {
+        const menuResponse = await fetch(
+          `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu?slug=${selectedSlug}`
+        );
+        const menuData: MenuItem[] = await menuResponse.json();
+        setMenuItems(menuData);
+        setFilteredItems(menuData);
+
+        const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
+        setTypes(uniqueTypes);
+
+        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`);
+        const ingredientsData = await ingredientsResponse.json();
+        const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
+        setIngredients(uniqueIngredients);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenuAndIngredients();
+  }, [selectedSlug]);
+
 
   const clearFilters = () => {
     setSearchText("");
