@@ -1,3 +1,6 @@
+import { authEvents } from "@/utils/authEvents";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -28,6 +31,8 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
   const [selectedMotivation, setSelectedMotivation] = useState<string | null>(null);
   const [selectedNotifications, setSelectedNotifications] = useState<string | null>(null);
   const [selectedNotificationTypes, setSelectedNotificationTypes] = useState<string[]>([]);
+
+  const [notificationError, setNotificationError] = useState<string>();
 
   const handleToggle = (
     state: string[],
@@ -79,6 +84,16 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
       questionnaire
     }
 
+    if(selectedNotifications === 'No' && selectedNotificationTypes.length > 0){
+      setNotificationError('Habilita las notificaciones');
+      return;
+    }
+
+    if (selectedNotifications === 'Yes' && selectedNotificationTypes.length === 0){
+      setNotificationError('Elige al menos un tipo de notificación');
+      return;
+    }
+
     try {
       const response = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/register`, {
         method: 'POST',
@@ -90,6 +105,11 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
 
       if (response.ok) {
         alert('Usuario registrado correctamente');
+        const result = await response.json();
+        await AsyncStorage.setItem('token', result.token);
+        authEvents.emit('authChange');
+        router.replace('/');
+
       } else {
         const error = await response.json();
         console.log(error);
@@ -194,6 +214,7 @@ const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ onGoBack,
               <Text style={styles.optionText}>{type}</Text>
             </TouchableOpacity>
           ))}
+          {notificationError && <Text style={styles.errorText}>{notificationError}</Text>}
         </View>
       )}
 
@@ -265,6 +286,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+  errorText: {
+    color: "#FF6B6B",
+    marginTop: -10,
+    marginBottom: 10,
+    fontSize: 14,
+  }
 });
 
 export default PersonalizationScreen;

@@ -12,11 +12,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const handleLogin = async () => {
-    if (!userOrEmail || !password) {
-      Alert.alert("Error", "Por favor ingresa usuario/email y contraseña");
+    const newErrors: Record<string, string> = {};
+
+    if (!userOrEmail) newErrors.userOrEmail = 'Por favor, introduzca el nombre de usuario';
+    if (!password) newErrors.password = 'Por favor, introduzca la contraseña';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
     setLoading(true);
     try {
       const response = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/login`, {
@@ -29,7 +36,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
       });
       const result = await response.json();
       if (response.ok) {
-        // Suponemos que el backend devuelve un token
         onLoginSuccess(result.token);
         await AsyncStorage.setItem("token", result.token);
       } else {
@@ -54,6 +60,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
         value={userOrEmail}
         onChangeText={setUserOrEmail}
       />
+      {errors.userOrEmail && <Text style={styles.errorText}>{errors.userOrEmail}</Text>}
+
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
@@ -62,6 +70,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
         value={password}
         onChangeText={setPassword}
       />
+      {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? "Cargando..." : "Entrar"}</Text>
       </TouchableOpacity>
@@ -125,6 +135,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  errorText: {
+    color: "#FF6B6B",
+    marginTop: -10,
+    marginBottom: 10,
+    fontSize: 14,
+  }
 });
 
 export default LoginScreen;
