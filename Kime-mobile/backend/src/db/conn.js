@@ -5,31 +5,31 @@ import mongoose from 'mongoose';
 dotenv.config();
 
 const uri = process.env.MONGO_URI || '';
-const dbRobot = process.env.MONGO_DB_NAME || '';
 const dbMain = process.env.MONGO_MAIN_DATABASE || '';
 
-let db1Connection;
-let db2Connection;
+let mainConnection;
 
 const connectDB = async () => {
   try {
-    db1Connection = await mongoose.createConnection(uri, {
-      dbName: dbRobot,
-    });
-    console.log(`MongoDB 1 conectado a: ${dbRobot}`);
-
-    db2Connection = await mongoose.createConnection(uri, {
+    mainConnection = mongoose.createConnection(uri, {
       dbName: dbMain,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-    console.log(`MongoDB 2 conectado a: ${dbMain}`);
+
+    console.log(`MongoDB conectado a base MAIN: ${dbMain}`);
   } catch (error) {
-    console.error('Error al conectar a MongoDBs:', error);
+    console.error('❌ Error al conectar a MongoDB:', error);
     process.exit(1);
   }
 };
 
-// En lugar de exportar las conexiones directamente, exportamos funciones para obtenerlas cuando ya estén listas
-const getDB1Connection = () => db1Connection;
-const getDB2Connection = () => db2Connection;
+const getMainDatabase = () => {
+  if (!mainConnection) {
+    throw new Error('La conexión aún no ha sido establecida. ¿Has llamado a connectDB()?');
+  }
+  return mainConnection;
+};
 
-export { connectDB, getDB1Connection, getDB2Connection };
+export { connectDB, getMainDatabase };
+
