@@ -17,4 +17,4 @@ const orderSchema = new mongoose.Schema({
   kiosks_id : { type: String, required: true }
 }, { collection: "orders", versionKey: false });
 
-export default mongoose.model('Order', orderSchema);
+export default orderSchema;

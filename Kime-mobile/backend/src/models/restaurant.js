@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getMainDatabase } from '../db/conn.js';
 
 const restaurantSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -9,6 +10,12 @@ const restaurantSchema = new mongoose.Schema({
   versionKey: false,
 });
 
-export const getRestaurantModel = (connection) => {
-  return connection.model('Restaurant', restaurantSchema, 'restaurants');
-};
+let Restaurant;
+try {
+  Restaurant = getMainDatabase().model('Restaurant');
+} catch (e) {
+  Restaurant = getMainDatabase().model('Restaurant', restaurantSchema);
+}
+
+export default Restaurant;
+

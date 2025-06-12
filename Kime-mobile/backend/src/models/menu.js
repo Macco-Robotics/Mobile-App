@@ -20,7 +20,4 @@ const menuSchema = new mongoose.Schema({
   recipe: [recipeSchema],
 }, { collection: "menu" });
 
-// Fábrica que permite usar este esquema con cualquier conexión
-export const getMenuModel = (connection) => {
-  return connection.model("Menu", menuSchema);
-};
+export default menuSchema;
