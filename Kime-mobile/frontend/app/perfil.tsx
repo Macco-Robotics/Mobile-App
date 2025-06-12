@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Header from './header'; // ✅ Asegúrate de que la ruta sea correcta
+import Header from './header';
 
 
 const EditPerfil = () => {
@@ -27,14 +27,42 @@ const EditPerfil = () => {
     imageUri,
     cloudinaryUrl,
     uploading,
+    setImageUri,
+    setCloudinaryUrl,
     pickImage,
     takePhoto
   } = useImageUpload();
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const defaultProfilePic = require('../images/profilePicPlaceholder.png');
 
   const handleImagePicker = () => {
     setModalVisible(true);
   };
+
+  const handleRemoveImage = async () => {
+    if (imageUri) setImageUri(null);
+    if (cloudinaryUrl) setCloudinaryUrl(null);
+    setForm((prev: any) => ({ ...prev, image: '' }));
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const res = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/user/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+
+        },
+        body: JSON.stringify({
+          ...form, image: ''
+        })
+      })
+      if (res.ok) {
+        Alert.alert('Foto eliminada exitosamente');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -166,12 +194,23 @@ const EditPerfil = () => {
             style={styles.photoCircle}
           />
         ) : (
-          <View style={styles.photoCircle} />
+          <Image
+            source={defaultProfilePic}
+            style={styles.photoCircle}
+          />
         )}
 
-        <TouchableOpacity style={styles.cameraButton} onPress={handleImagePicker}>
-          <Feather name="camera" size={24} color="#071e41" />
-        </TouchableOpacity>
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity style={styles.cameraButton} onPress={handleImagePicker}>
+            <Feather name="camera" size={24} color="#071e41" />
+          </TouchableOpacity>
+
+          {(form.image) &&
+            (<TouchableOpacity style={styles.trashButton} onPress={handleRemoveImage}>
+              <Feather name="trash" size={24} color="#00000" />
+            </TouchableOpacity>
+            )}
+        </View>
       </View>
 
       {renderField('Nombre', 'name', 'Nombre')}
@@ -343,5 +382,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  buttonsContainer: {
+    flexDirection: 'row',
+    margin: 15,
+    justifyContent: 'space-between',
+  },
+  trashButton: {
+    marginTop: 10,
+    backgroundColor: '#f65938',
+    padding: 10,
+    borderRadius: 30,
+    marginLeft: 17
+  }
 
 });
