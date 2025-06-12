@@ -1,11 +1,14 @@
-import Inventory from '../models/inventory.js';
-import Menu from '../models/menu.js';
+import { getTenantModels } from "../db/dynamicConn.js";
 
 export const getAllMenus = async (req, res) => {
   try {
+    const dbName = req.restaurantSlug;
+    const { Menu } = await getTenantModels(dbName);
+
     const menus = await Menu.find();
     res.json(menus);
   } catch (error) {
+    console.log(error);
     res.status(500).send('Server Error');
   }
 };

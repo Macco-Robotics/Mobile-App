@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { filterMenus } from "../utils/filterMenus";
 
 const screenWidth = Dimensions.get("window").width;
 const numColumns = 4;
@@ -46,7 +45,15 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
       try {
-        const menuResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu?slug=${selectedSlug}`);
+        console.log(selectedSlug);
+        const menuResponse = await fetch(
+          `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`,
+          {
+            headers: {
+              'x-restaurant-slug': selectedSlug,
+            },
+          }
+        );
         const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);
         setFilteredItems(menuData);
@@ -74,8 +81,14 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
 
       setLoading(true);
       try {
+        console.log(selectedSlug);
         const menuResponse = await fetch(
-          `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu?slug=${selectedSlug}`
+          `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`,
+          {
+            headers: {
+              'x-restaurant-slug': selectedSlug,
+            },
+          }
         );
         const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);

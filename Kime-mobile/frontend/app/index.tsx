@@ -1,13 +1,12 @@
 import { authEvents } from "@/utils/authEvents";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import LoginScreen from "./(login)/loginScreen";
 import RegisterLoginController from "./(registration)/register-loginController";
-import MenuCatalog from "./menuCatalog";
 import Header from "./header";
-import { Picker } from "@react-native-picker/picker"; 
-import { Text } from "react-native"; 
+import MenuCatalog from "./menuCatalog";
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
