@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getMainDatabase } from "../db/conn.js";
 
 const questionnaireSchema = new mongoose.Schema({
   flavourPreferences: {
@@ -74,6 +75,6 @@ const userSchema = new mongoose.Schema({
     createdDrinks: [{type: mongoose.Schema.Types.ObjectId, ref: 'Drink', default: []}],
   }, { collection: "user"});
 
-  const User = mongoose.model("User", userSchema);
+  const User = getMainDatabase().model("User", userSchema);
 
   export default User;

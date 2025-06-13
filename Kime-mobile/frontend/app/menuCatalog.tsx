@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { filterMenus } from "../utils/filterMenus";
 
 const screenWidth = Dimensions.get("window").width;
 const numColumns = 4;
@@ -31,7 +30,7 @@ type MenuItem = {
   recipe: { name: string; quantity: number; unit?: string }[];
 };
 
-export default function MenuCatalog() {
+export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) {
   const router = useRouter();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -45,8 +44,18 @@ export default function MenuCatalog() {
 
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
+      if (!selectedSlug) return;
+
+      setLoading(true);
       try {
-        const menuResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`);
+        const menuResponse = await fetch(
+          `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`,
+          {
+            headers: {
+              'x-restaurant-slug': selectedSlug,
+            },
+          }
+        );
         const menuData: MenuItem[] = await menuResponse.json();
         setMenuItems(menuData);
         setFilteredItems(menuData);
@@ -54,7 +63,11 @@ export default function MenuCatalog() {
         const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
         setTypes(uniqueTypes);
 
-        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`);
+        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`, {
+          headers: {
+            'x-restaurant-slug': selectedSlug,
+          }
+        });
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
         setIngredients(uniqueIngredients);
@@ -66,12 +79,8 @@ export default function MenuCatalog() {
     };
 
     fetchMenuAndIngredients();
-  }, []);
+  }, [selectedSlug]);
 
-  useEffect(() => {
-    const filtered = filterMenus(menuItems, searchText, selectedType, selectedIngredient);
-    setFilteredItems(filtered);
-  }, [menuItems, searchText, selectedType, selectedIngredient]);
 
   const clearFilters = () => {
     setSearchText("");
@@ -83,7 +92,7 @@ export default function MenuCatalog() {
   const renderItem = ({ item }: { item: MenuItem }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`/bebida/${item._id}`)}
+      onPress={() => router.push(`/bebida/${item._id}?slug=${selectedSlug}`)}
       activeOpacity={0.75}
     >
       <Text style={styles.name} numberOfLines={1}>
@@ -97,6 +106,30 @@ export default function MenuCatalog() {
       </Text>
     </TouchableOpacity>
   );
+
+  useEffect(() => {
+    let filtered = menuItems;
+
+    if (selectedType) {
+      filtered = filtered.filter(item => item.type === selectedType);
+    }
+
+    if (selectedIngredient) {
+      filtered = filtered.filter(item =>
+        item.recipe.some(ingredient => ingredient.name === selectedIngredient)
+      );
+    }
+
+    if (searchText.trim()) {
+      const search = searchText.trim().toLowerCase();
+      filtered = filtered.filter(item =>
+        item.display_name.toLowerCase().includes(search) ||
+        item.description.toLowerCase().includes(search)
+      );
+    }
+
+    setFilteredItems(filtered);
+  }, [menuItems, selectedType, selectedIngredient, searchText]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#1e9ca4" style={{ marginTop: 50 }} />;

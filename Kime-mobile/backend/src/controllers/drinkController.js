@@ -78,7 +78,7 @@ export const createDrink = async (req, res) => {
             "Infusión": "http://localhost:3000/images/infusion.png",
             "Zumo": "http://localhost:3000/images/juice.png",
             "Bebida energética": "http://localhost:3000/images/energy.png",
-            "Refresco": "http://localhost:3000/images/soda.jpg"
+            "Refresco": "http://localhost:3000/images/soda.png"
         };
 
         const image = imageByType[type];

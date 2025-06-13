@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getMainDatabase } from "../db/conn.js";
 
 const drinkSchema = mongoose.Schema({
     name: { type: String, required: true },
@@ -15,6 +16,5 @@ const drinkSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-const Drink = mongoose.model('Drink', drinkSchema);
-
+const Drink = getMainDatabase().model('Drink', drinkSchema);
 export default Drink;

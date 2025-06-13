@@ -1,21 +1,35 @@
+// src/db/conn.js
 import dotenv from 'dotenv';
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 dotenv.config();
-const connection = process.env.MONGO_URI || "";
-const dbName = process.env.MONGO_DB_NAME || "";
 
-export const connectDB = async () => {
-    try {
-        await mongoose.connect(connection, {
-            dbName: dbName,
-        });
+const uri = process.env.MONGO_URI || '';
+const dbMain = process.env.MONGO_MAIN_DATABASE || '';
 
-        console.log("MongoDB conectado exitosamente!");
-        console.log(dbName);
+let mainConnection;
 
-    } catch (error) {
-        console.error("Error al conectar MongoDB:", error);
-        process.exit(1);
-    }
+const connectDB = async () => {
+  try {
+    mainConnection = mongoose.createConnection(uri, {
+      dbName: dbMain,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    console.log(`MongoDB conectado a base MAIN: ${dbMain}`);
+  } catch (error) {
+    console.error('❌ Error al conectar a MongoDB:', error);
+    process.exit(1);
+  }
 };
+
+const getMainDatabase = () => {
+  if (!mainConnection) {
+    throw new Error('La conexión aún no ha sido establecida. ¿Has llamado a connectDB()?');
+  }
+  return mainConnection;
+};
+
+export { connectDB, getMainDatabase };
+

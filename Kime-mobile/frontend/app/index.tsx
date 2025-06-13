@@ -1,16 +1,20 @@
 import { authEvents } from "@/utils/authEvents";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import LoginScreen from "./(login)/loginScreen";
 import RegisterLoginController from "./(registration)/register-loginController";
+import Header from "./header";
 import MenuCatalog from "./menuCatalog";
-import Header from "./header"; // 👈 Asegúrate de que la ruta sea correcta
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [isLogged, setIsLogged] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [slugs, setSlugs] = useState<string[]>([]);
+  const [selectedSlug, setSelectedSlug] = useState<string>("");
+
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -18,19 +22,48 @@ export default function HomeScreen() {
       setIsLogged(!!token);
       setLoading(false);
     };
+
     checkLogin();
   }, []);
+
+  useEffect(() => {
+    const fetchSlugs = async () => {
+      try {
+        const res = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/restaurants/slugs`);
+        const data = await res.json();
+        setSlugs(data);
+
+        const storedSlug = await AsyncStorage.getItem('selectedSlug');
+        if (storedSlug && data.includes(storedSlug)) {
+          setSelectedSlug(storedSlug);
+        } else {
+          setSelectedSlug(data[0] || "");
+        }
+      } catch (err) {
+        console.error("Error al cargar slugs:", err);
+      }
+    };
+
+    if (isLogged) {
+      fetchSlugs();
+    }
+  }, [isLogged]);
 
   const handleLoginSuccess = async (token: string) => {
     await AsyncStorage.setItem("token", token);
     setIsLogged(true);
-    authEvents.emit("authChange"); 
+    authEvents.emit("authChange");
 
   };
 
   const handleGoToRegister = () => {
     setShowRegister(true);
   };
+
+  const handleSlugChange = async (itemValue: string) => {
+    setSelectedSlug(itemValue);
+    await AsyncStorage.setItem('selectedSlug', itemValue);
+  }
 
   if (loading) {
     return (
@@ -44,8 +77,25 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {isLogged ? (
         <>
+          {/* 🔽 SELECTOR DE SLUGS */}
+          <View style={{ padding: 10, backgroundColor: "#fff" }}>
+            <Text style={{ fontWeight: "bold", marginBottom: 5 }}>
+              Selecciona un restaurante
+            </Text>
+            <Picker
+              selectedValue={selectedSlug}
+              onValueChange={handleSlugChange}
+            >
+              {slugs.map((slug) => (
+                <Picker.Item key={slug} label={slug} value={slug} />
+              ))}
+            </Picker>
+          </View>
+
+          {/* CONTENIDO PRINCIPAL */}
           <Header />
-          <MenuCatalog />
+          <MenuCatalog selectedSlug={selectedSlug} />
+
         </>
       ) : showRegister ? (
         <RegisterLoginController />

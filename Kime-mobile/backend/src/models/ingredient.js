@@ -1,12 +1,10 @@
 import mongoose from "mongoose";
+import { getMainDatabase } from "../db/conn.js";
 
 const ingredientSchema = mongoose.Schema({
-    name: {type: String, required: true},
-    type: {type: String, enum: ['Alcohol', 'Zumo', 'Fruta', 'Lácteo', 'Sirope', 'Decoración', 'Otro'], required: true},
-    allergens: {type: [String]},
+    name: {type: String, required: true, unique: true},
     createdAt: {type: Date, default: Date.now}
 });
 
-const Ingredient = mongoose.model('Ingredient', ingredientSchema);
-
+const Ingredient = getMainDatabase().model('Ingredient', ingredientSchema);
 export default Ingredient;
