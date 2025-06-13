@@ -44,44 +44,10 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
 
   useEffect(() => {
     const fetchMenuAndIngredients = async () => {
-      try {
-        console.log(selectedSlug);
-        const menuResponse = await fetch(
-          `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`,
-          {
-            headers: {
-              'x-restaurant-slug': selectedSlug,
-            },
-          }
-        );
-        const menuData: MenuItem[] = await menuResponse.json();
-        setMenuItems(menuData);
-        setFilteredItems(menuData);
-
-        const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
-        setTypes(uniqueTypes);
-
-        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`);
-        const ingredientsData = await ingredientsResponse.json();
-        const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
-        setIngredients(uniqueIngredients);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMenuAndIngredients();
-  }, []);
-
-  useEffect(() => {
-    const fetchMenuAndIngredients = async () => {
       if (!selectedSlug) return;
 
       setLoading(true);
       try {
-        console.log(selectedSlug);
         const menuResponse = await fetch(
           `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu`,
           {
@@ -94,10 +60,16 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
         setMenuItems(menuData);
         setFilteredItems(menuData);
 
+        console.log(selectedType);
+
         const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
         setTypes(uniqueTypes);
 
-        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`);
+        const ingredientsResponse = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/inventory`, {
+          headers: {
+            'x-restaurant-slug': selectedSlug,
+          }
+        });
         const ingredientsData = await ingredientsResponse.json();
         const uniqueIngredients = ingredientsData.map((item: { name: string }) => item.name);
         setIngredients(uniqueIngredients);
@@ -122,7 +94,7 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
   const renderItem = ({ item }: { item: MenuItem }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`/bebida/${item._id}`)}
+      onPress={() => router.push(`/bebida/${item._id}?slug=${selectedSlug}`)}
       activeOpacity={0.75}
     >
       <Text style={styles.name} numberOfLines={1}>
@@ -136,6 +108,30 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
       </Text>
     </TouchableOpacity>
   );
+
+  useEffect(() => {
+    let filtered = menuItems;
+
+    if (selectedType) {
+      filtered = filtered.filter(item => item.type === selectedType);
+    }
+
+    if (selectedIngredient) {
+      filtered = filtered.filter(item =>
+        item.recipe.some(ingredient => ingredient.name === selectedIngredient)
+      );
+    }
+
+    if (searchText.trim()) {
+      const search = searchText.trim().toLowerCase();
+      filtered = filtered.filter(item =>
+        item.display_name.toLowerCase().includes(search) ||
+        item.description.toLowerCase().includes(search)
+      );
+    }
+
+    setFilteredItems(filtered);
+  }, [menuItems, selectedType, selectedIngredient, searchText]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#1e9ca4" style={{ marginTop: 50 }} />;

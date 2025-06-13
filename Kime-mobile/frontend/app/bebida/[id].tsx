@@ -23,7 +23,7 @@ type Bebida = {
 };
 
 export default function BebidaDetalle() {
-  const { id } = useLocalSearchParams();
+  const { id, slug } = useLocalSearchParams();
   const router = useRouter();
   const [bebida, setBebida] = useState<Bebida | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,11 @@ export default function BebidaDetalle() {
   useEffect(() => {
     const fetchBebida = async () => {
       try {
-        const response = await fetch(`http:/${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu/product/${id}`);
+        const response = await fetch(`http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/api/menu/product/${id}`, {
+          headers: {
+            'x-restaurant-slug': slug as string,
+          }
+        });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         setBebida(data);
