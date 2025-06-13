@@ -60,8 +60,6 @@ export default function MenuCatalog({ selectedSlug }: { selectedSlug: string }) 
         setMenuItems(menuData);
         setFilteredItems(menuData);
 
-        console.log(selectedType);
-
         const uniqueTypes = Array.from(new Set(menuData.map((item) => item.type)));
         setTypes(uniqueTypes);
 

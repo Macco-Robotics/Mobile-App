@@ -62,10 +62,6 @@ export default function DrinkCreationForm() {
     fetchIngredients();
   }, []);
 
-  useEffect(() => {
-    setValue('image', `http://${process.env.EXPO_PUBLIC_DEPLOYMENT}/images/bebidaPlaceholder.png`);
-  }, [setValue]);
-
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
     try {
@@ -81,7 +77,6 @@ export default function DrinkCreationForm() {
         description: formData.description,
         type: formData.type,
         isPublic: formData.isPublic,
-        image: formData.image,
         ingredients: validIngredients.map(item => ({
           ingredient: item.ingredient,
           quantity: Number(item.quantity)

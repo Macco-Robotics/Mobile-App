@@ -3,6 +3,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import {
   FlatList,
+  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -19,6 +20,7 @@ type Drink = {
   likes: number;
   isLiked: boolean;
   isSaved: boolean;
+  image: string;
   ingredients: { ingredient: { name: string }; quantity: number }[];
   creator: { name: string };
 };
@@ -37,6 +39,7 @@ export default function PublicDrinksScreen() {
       });
       setDrinks(response.data);
       setFiltered(response.data);
+      console.log(response.data)
     } catch (err) {
       console.error('Error al cargar bebidas públicas:', err);
     }
@@ -97,34 +100,54 @@ export default function PublicDrinksScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Drink }) => (
-    <View style={styles.card}>
-      <Text style={styles.title}>{item.name}</Text>
-      <Text style={styles.text}>Tipo: {item.type}</Text>
-      <Text style={styles.text}>Autor: {item.creator?.name || 'Desconocido'}</Text>
-      <Text style={styles.text}>
-        Ingredientes: {item.ingredients.map(i => `${i.ingredient.name} (${i.quantity})`).join(', ')}
-      </Text>
-      <Text style={styles.likes}>❤️ {item.likes}</Text>
+  const renderItem = ({ item }: { item: Drink }) => {
+    let imageUrl = item.image;
+    if (imageUrl && imageUrl.includes('localhost:3000')) {
+      imageUrl = imageUrl.replace(
+        'localhost:3000',
+        process.env.EXPO_PUBLIC_DEPLOYMENT || 'localhost:3000'
+      );
+    }
+    console.log(imageUrl)
 
-      <View style={styles.iconRow}>
-        <TouchableOpacity onPress={() => likeDrink(item._id)}>
-          <Icon
-            name={item.isLiked ? 'heart' : 'heart-outline'}
-            size={24}
-            color="#FF4136"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => saveDrink(item._id)}>
-          <Icon
-            name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
-            size={24}
-            color="#0074D9"
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    return (
+      (
+        <View style={styles.card}>
+          {item.image ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.drinkImage}
+              resizeMode="cover"
+            />
+          ) : null}
+          <Text style={styles.title}>{item.name}</Text>
+          <Text style={styles.text}>Tipo: {item.type}</Text>
+          <Text style={styles.text}>Autor: {item.creator?.name || 'Desconocido'}</Text>
+          <Text style={styles.text}>
+            Ingredientes: {item.ingredients.map(i => `${i.ingredient.name} (${i.quantity})`).join(', ')}
+          </Text>
+          <Text style={styles.likes}>❤️ {item.likes}</Text>
+
+          <View style={styles.iconRow}>
+            <TouchableOpacity onPress={() => likeDrink(item._id)}>
+              <Icon
+                name={item.isLiked ? 'heart' : 'heart-outline'}
+                size={24}
+                color="#FF4136"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => saveDrink(item._id)}>
+              <Icon
+                name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={24}
+                color="#0074D9"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -221,5 +244,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 8,
     width: 60,
+  },
+  drinkImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
 });
