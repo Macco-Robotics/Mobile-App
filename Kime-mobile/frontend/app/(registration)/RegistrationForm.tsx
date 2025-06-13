@@ -10,11 +10,13 @@ import {
   FlatList,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../context/themeContext";
 
+// Debes definir aquí tus flags y países (ajusta rutas y contenido)
 const flags: Record<string, any> = {
+  ES: require("../../images/es.png"),
   IT: require("../../images/it.png"),
   AL: require("../../images/al.png"),
-  ES: require("../../images/es.png"),
   PT: require("../../images/pt.png"),
   BE: require("../../images/be.png"),
   NL: require("../../images/nl.png"),
@@ -22,17 +24,16 @@ const flags: Record<string, any> = {
   IN: require("../../images/in.webp"),
   JP: require("../../images/jp.png"),
 };
-
 const countries = [
-  { code: "IT", callingCode: "39", name: "Italia" },
-  { code: "AL", callingCode: "355", name: "Albania" },
-  { code: "ES", callingCode: "34", name: "España" },
-  { code: "PT", callingCode: "351", name: "Portugal" },
-  { code: "BE", callingCode: "32", name: "Bélgica" },
-  { code: "NL", callingCode: "31", name: "Holanda" },
-  { code: "US", callingCode: "1", name: "Estados Unidos" },
-  { code: "IN", callingCode: "91", name: "India" },
-  { code: "JP", callingCode: "81", name: "Japón" },
+  { code: "IT", name: "Italia", callingCode: "39" },
+  { code: "AL", name: "Albania", callingCode: "355" },
+  { code: "ES", name: "España", callingCode: "34" },
+  { code: "PT", name: "Portugal", callingCode: "351" },
+  { code: "BE", name: "Bélgica", callingCode: "32" },
+  { code: "NL", name: "Holanda", callingCode: "31" },
+  { code: "US", name: "Estados Unidos", callingCode: "1" },
+  { code: "IN", name: "India", callingCode: "91" },
+  { code: "JP", name: "Japón", callingCode: "81" },
 ];
 
 const initialFormData = {
@@ -48,81 +49,149 @@ const initialFormData = {
   image: "",
 };
 
-type RegistrationFormProps = {
-  onRegistrationComplete: (data: any) => void;
-  userData?: typeof initialFormData;
+const validateFormData = (formData: typeof initialFormData) => {
+  const errors: Partial<Record<keyof typeof initialFormData, string>> = {};
+
+  if (!formData.user) errors.user = "El nombre de usuario es requerido";
+  if (!formData.email) errors.email = "El email es requerido";
+  else if (!/\S+@\S+\.\S+/.test(formData.email))
+    errors.email = "Email inválido";
+  if (!formData.password) errors.password = "La contraseña es requerida";
+  if (!formData.phone) errors.phone = "El teléfono es requerido";
+
+  return errors;
 };
 
-const validateFormData = (formData: typeof initialFormData) => {
-  const newErrors: Partial<Record<keyof typeof formData, string>> = {};
-
-  if (!formData.user) {
-    newErrors.user = "El nombre de usuario es obligatorio.";
-  } else if (formData.user.length < 4 || formData.user.length > 20) {
-    newErrors.user = "Debe tener entre 4 y 20 caracteres.";
-  }
-
-  if (!formData.name) {
-    newErrors.name = "El nombre es obligatorio.";
-  } else if (formData.name.length < 2 || formData.name.length > 30) {
-    newErrors.name = "Debe tener entre 2 y 30 caracteres.";
-  }
-
-  if (!formData.lastName) {
-    newErrors.lastName = "Los apellidos son obligatorios.";
-  } else if (formData.lastName.length < 2 || formData.lastName.length > 50) {
-    newErrors.lastName = "Debe tener entre 2 y 50 caracteres.";
-  }
-
-  if (!formData.email) {
-    newErrors.email = "El correo electrónico es obligatorio.";
-  } else {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      newErrors.email = "El correo electrónico no es válido.";
-    }
-  }
-
-  if (!formData.password) {
-    newErrors.password = "La contraseña es obligatoria.";
-  } else if (formData.password.length < 6 || formData.password.length > 50) {
-    newErrors.password = "Debe tener entre 6 y 50 caracteres.";
-  }
-
-  if (!formData.address) {
-    newErrors.address = "La dirección es obligatoria.";
-  } else if (formData.address.length < 5 || formData.address.length > 100) {
-    newErrors.address = "Debe tener entre 5 y 100 caracteres.";
-  }
-
-  if (!formData.postalCode) {
-    newErrors.postalCode = "El código postal es obligatorio.";
-  } else if (formData.postalCode.length < 5 || formData.postalCode.length > 10) {
-    newErrors.postalCode = "Debe tener entre 5 y 10 caracteres.";
-  }
-
-  if (!formData.phone) {
-    newErrors.phone = "El teléfono es obligatorio.";
-  } else {
-    const phoneRegex = /^\d{9,15}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Debe tener entre 9 y 15 dígitos numéricos.";
-    }
-  }
-
-  return newErrors;
+type RegistrationFormProps = {
+  onRegistrationComplete: (data: typeof initialFormData & { phone: string }) => void;
+  userData?: typeof initialFormData;
 };
 
 const RegistrationForm: React.FC<RegistrationFormProps> = ({
   onRegistrationComplete,
   userData,
 }) => {
+  const { colors } = useTheme();
+
   const [formData, setFormData] = useState(userData || initialFormData);
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof initialFormData, string>>>({});
   const [selectedCountry, setSelectedCountry] = useState(countries[2]); // España por defecto
   const [showCountries, setShowCountries] = useState(false);
 
-  const handleChange = (name: string, value: string) => {
+  const styles = StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      justifyContent: "center",
+      alignItems: "stretch",
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    formContainer: {
+      width: "100%",
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 20,
+      alignSelf: "center",
+    },
+    photoSection: {
+      alignItems: "center",
+      marginBottom: 25,
+    },
+    photoCircle: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor: colors.card,
+      justifyContent: "center",
+      alignItems: "center",
+      overflow: "hidden",
+    },
+    cameraIconContainer: {
+      marginTop: 10,
+      backgroundColor: colors.card,
+      padding: 12,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    input: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      color: colors.text,
+      backgroundColor: colors.card,
+      marginBottom: 15,
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: "top",
+    },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 15,
+      borderRadius: 8,
+      alignItems: "center",
+      marginTop: 10,
+    },
+    buttonText: {
+      color: colors.buttonText,
+      fontWeight: "bold",
+      fontSize: 16,
+    },
+    errorText: {
+      color: "#FF6B6B",
+      marginTop: -10,
+      marginBottom: 10,
+      fontSize: 14,
+    },
+    phoneContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    prefixContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    prefixText: {
+      color: colors.text,
+      marginLeft: 6,
+    },
+    flag: {
+      width: 24,
+      height: 16,
+      resizeMode: "contain",
+    },
+    dropdownContainer: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      marginTop: 5,
+    },
+    countryItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 10,
+    },
+    countryText: {
+      color: colors.text,
+      marginLeft: 10,
+    },
+  });
+
+  const handleChange = (name: keyof typeof initialFormData, value: string) => {
     setFormData({ ...formData, [name]: value });
   };
 
@@ -134,7 +203,10 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
     }
 
     setErrors({});
-    onRegistrationComplete({ ...formData, phone: `+${selectedCountry.callingCode}${formData.phone}` });
+    onRegistrationComplete({
+      ...formData,
+      phone: `+${selectedCountry.callingCode}${formData.phone}`,
+    });
   };
 
   return (
@@ -149,14 +221,14 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
             ) : null}
           </View>
           <TouchableOpacity style={styles.cameraIconContainer} activeOpacity={0.7}>
-            <MaterialIcons name="photo-camera" size={28} color="#A9D6E5" />
+            <MaterialIcons name="photo-camera" size={28} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         <TextInput
           style={styles.input}
           placeholder="Nombre de usuario"
-          placeholderTextColor="#A9D6E5"
+          placeholderTextColor={colors.placeholder}
           value={formData.user}
           onChangeText={(value) => handleChange("user", value)}
         />
@@ -165,7 +237,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
         <TextInput
           style={styles.input}
           placeholder="Nombre"
-          placeholderTextColor="#A9D6E5"
+          placeholderTextColor={colors.placeholder}
           value={formData.name}
           onChangeText={(value) => handleChange("name", value)}
         />
@@ -174,7 +246,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
         <TextInput
           style={styles.input}
           placeholder="Apellidos"
-          placeholderTextColor="#A9D6E5"
+          placeholderTextColor={colors.placeholder}
           value={formData.lastName}
           onChangeText={(value) => handleChange("lastName", value)}
         />
@@ -183,7 +255,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor="#A9D6E5"
+          placeholderTextColor={colors.placeholder}
           value={formData.email}
           onChangeText={(value) => handleChange("email", value)}
           keyboardType="email-address"
@@ -194,17 +266,17 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
-          placeholderTextColor="#A9D6E5"
-          secureTextEntry
+          placeholderTextColor={colors.placeholder}
           value={formData.password}
           onChangeText={(value) => handleChange("password", value)}
+          secureTextEntry
         />
         {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
         <TextInput
           style={styles.input}
           placeholder="Dirección"
-          placeholderTextColor="#A9D6E5"
+          placeholderTextColor={colors.placeholder}
           value={formData.address}
           onChangeText={(value) => handleChange("address", value)}
         />
@@ -212,15 +284,15 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
         <TextInput
           style={styles.input}
-          placeholder="Código Postal"
-          placeholderTextColor="#A9D6E5"
+          placeholder="Código postal"
+          placeholderTextColor={colors.placeholder}
           value={formData.postalCode}
           onChangeText={(value) => handleChange("postalCode", value)}
           keyboardType="numeric"
         />
         {errors.postalCode && <Text style={styles.errorText}>{errors.postalCode}</Text>}
 
-        {/* Teléfono con prefijo desplegable inline */}
+        {/* Teléfono con prefijo */}
         <View style={{ marginBottom: 15 }}>
           <View style={styles.phoneContainer}>
             <TouchableOpacity
@@ -233,14 +305,14 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
               <MaterialIcons
                 name={showCountries ? "keyboard-arrow-up" : "keyboard-arrow-down"}
                 size={20}
-                color="#A9D6E5"
+                color={colors.text}
                 style={{ marginLeft: 5 }}
               />
             </TouchableOpacity>
             <TextInput
               style={[styles.input, { flex: 1, marginLeft: 10 }]}
               placeholder="Teléfono"
-              placeholderTextColor="#A9D6E5"
+              placeholderTextColor={colors.placeholder}
               value={formData.phone}
               onChangeText={(value) => handleChange("phone", value)}
               keyboardType="phone-pad"
@@ -277,7 +349,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Descripción"
-          placeholderTextColor="#A9D6E5"
+          placeholderTextColor={colors.placeholder}
           value={formData.description}
           onChangeText={(value) => handleChange("description", value)}
           multiline
@@ -291,121 +363,5 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "stretch",
-    padding: 20,
-    backgroundColor: "#001F3F",
-  },
-  formContainer: {
-    width: "100%",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#A9D6E5",
-    marginBottom: 20,
-    alignSelf: "center",
-  },
-  photoSection: {
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  photoCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: "#002B5B",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  cameraIconContainer: {
-    marginTop: 10,
-    backgroundColor: "#002B5B",
-    padding: 12,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 8,
-    color: "#FFFFFF",
-    backgroundColor: "#002B5B",
-    marginBottom: 15,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-  button: {
-    backgroundColor: "#A9D6E5",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "#003366",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  errorText: {
-    color: "#FF6B6B",
-    marginTop: -10,
-    marginBottom: 10,
-    fontSize: 14,
-  },
-  phoneContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10, // si usas React Native >= 0.71, para separación entre prefijo y input
-  },
-  prefixContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 9,
-    paddingHorizontal: 9,
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 8,
-    backgroundColor: "#002B5B",
-    height: 42, // altura fija para igualar con input
-    marginTop:-13,
-  },
-  flag: {
-    width: 26,
-    height: 18,
-    resizeMode: "contain",
-    marginRight: 6,
-  },
-  prefixText: {
-    fontSize: 16,
-    color: "#FFFFFF",
-  },
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 8,
-    backgroundColor: "#002B5B",
-    marginTop: 5,
-  },
-  countryItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-  },
-  countryText: {
-    color: "#FFFFFF",
-  },
-});
 
 export default RegistrationForm;

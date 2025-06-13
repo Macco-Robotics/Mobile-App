@@ -1,16 +1,19 @@
 import { authEvents } from "@/utils/authEvents";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
 import LoginScreen from "./(login)/loginScreen";
 import RegisterLoginController from "./(registration)/register-loginController";
 import MenuCatalog from "./menuCatalog";
-import Header from "./header"; // 👈 Asegúrate de que la ruta sea correcta
+import Header from "./header";
+import { useTheme } from "./context/themeContext";  // Ajusta la ruta según dónde tengas el context
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [isLogged, setIsLogged] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+
+  const { colors } = useTheme();  // <--- Aquí obtienes los colores del tema actual
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -24,8 +27,7 @@ export default function HomeScreen() {
   const handleLoginSuccess = async (token: string) => {
     await AsyncStorage.setItem("token", token);
     setIsLogged(true);
-    authEvents.emit("authChange"); 
-
+    authEvents.emit("authChange");
   };
 
   const handleGoToRegister = () => {
@@ -34,14 +36,14 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#A9D6E5" />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {isLogged ? (
         <>
           <Header />
@@ -62,6 +64,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#cae9ef",
+    // elimina backgroundColor fijo aquí, ahora va dinámico en línea
   },
 });

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useTheme } from "../context/themeContext"; // Ajusta según corresponda
 
 type LoginScreenProps = {
   onLoginSuccess: (token: string) => void;
@@ -8,6 +9,8 @@ type LoginScreenProps = {
 };
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegister }) => {
+  const { colors } = useTheme();
+
   const [userOrEmail, setUserOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,12 +27,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user: userOrEmail,
-          password: password,
+          password,
         }),
       });
       const result = await response.json();
       if (response.ok) {
-        // Suponemos que el backend devuelve un token
         onLoginSuccess(result.token);
         await AsyncStorage.setItem("token", result.token);
       } else {
@@ -43,13 +45,65 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: colors.primary,
+      marginBottom: 30,
+    },
+    input: {
+      width: "100%",
+      padding: 10,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 5,
+      color: colors.text,
+      backgroundColor: colors.card, // color suave para input
+    },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 15,
+      borderRadius: 5,
+      alignItems: "center",
+      width: "100%",
+      marginBottom: 20,
+    },
+    buttonText: {
+      color: colors.buttonText,
+      fontWeight: "bold",
+      fontSize: 16,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    footerText: {
+      color: colors.text,
+      fontSize: 14,
+    },
+    linkText: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: "bold",
+    },
+  });
+
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Iniciar Sesión</Text>
       <TextInput
         style={styles.input}
         placeholder="Usuario o Email"
-        placeholderTextColor="#A9D6E5"
+        placeholderTextColor={colors.placeholder}
         autoCapitalize="none"
         value={userOrEmail}
         onChangeText={setUserOrEmail}
@@ -57,7 +111,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
-        placeholderTextColor="#A9D6E5"
+        placeholderTextColor={colors.placeholder}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -74,57 +128,5 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGoToRegiste
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#001F3F",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#A9D6E5",
-    marginBottom: 30,
-  },
-  input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#A9D6E5",
-    borderRadius: 5,
-    color: "#FFFFFF",
-    backgroundColor: "#002B5B",
-  },
-  button: {
-    backgroundColor: "#A9D6E5",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 20,
-  },
-  buttonText: {
-    color: "#003366",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-  },
-  linkText: {
-    color: "#A9D6E5",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-});
 
 export default LoginScreen;

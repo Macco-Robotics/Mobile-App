@@ -13,13 +13,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Header from './header'; // ✅ Asegúrate de que la ruta sea correcta
+import Header from './header';
+import { useTheme } from './context/themeContext';
 
+const themeOptions = [
+  { key: "blue", color: "#7ec8e3" }, // Más claro
+  { key: "dark", color: "#071e41" },
+  { key: "light", color: "#ffffff" },
+  { key: "green", color: "#4caf50" },
+  { key: "purple", color: "#9c27b0" },
+] as const;
 
 const EditPerfil = () => {
   const [form, setForm] = useState<any>(null);
   const [editableFields, setEditableFields] = useState<Record<string, boolean>>({});
   const router = useRouter();
+  const { theme, setTheme, colors } = useTheme();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -83,7 +92,6 @@ const EditPerfil = () => {
       await AsyncStorage.removeItem('token');
       authEvents.emit('authChange');
       router.replace('/');
-
     } catch (error) {
       console.log(error);
       Alert.alert('Error', 'No se pudo cerrar sesión');
@@ -91,21 +99,21 @@ const EditPerfil = () => {
   }
 
   const renderField = (label: string, field: string, placeholder: string) => (
-    <View style={styles.card} key={field}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.primary }]} key={field}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardLabel}>{label}</Text>
+        <Text style={[styles.cardLabel, { color: colors.text }]}>{label}</Text>
         <TouchableOpacity onPress={() => toggleEdit(field)}>
           <Feather
             name="edit"
             size={18}
-            color={editableFields[field] ? '#39adbe' : '#071e41'}
+            color={editableFields[field] ? colors.primary : colors.text}
           />
         </TouchableOpacity>
       </View>
       <TextInput
-        style={styles.cardInput}
+        style={[styles.cardInput, { color: colors.text }]}
         placeholder={placeholder}
-        placeholderTextColor="#666"
+        placeholderTextColor={colors.placeholder}
         value={form?.[field] || ''}
         editable={!!editableFields[field]}
         onChangeText={(v) => handleChange(field, v)}
@@ -115,36 +123,23 @@ const EditPerfil = () => {
 
   if (!form) {
     return (
-      <Text style={{ marginTop: 50, textAlign: 'center', color: '#071e41' }}>
+      <Text style={{ marginTop: 50, textAlign: 'center', color: colors.text }}>
         Cargando...
       </Text>
     );
   }
-
+  console.log("theme actual:", theme);
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header con logo ya integrado */}
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
       <Header />
-      <View style={{ alignItems: 'flex-end', margin: 16 }}>
-        <Picker
-          selectedValue=""
-          onValueChange={(value) => {
-            if (value) router.push(`/createdSavedDrinks?type=${value}`);
-          }}
-          style={{ width: 200, color: 'white', backgroundColor: '#003366', borderRadius: 8 }}
-          dropdownIconColor="#fff"
-        >
-          <Picker.Item label="Ver bebidas..." value="" enabled={false} />
-          <Picker.Item label="Bebidas creadas" value="created" />
-          <Picker.Item label="Bebidas guardadas" value="saved" />
-        </Picker>
-      </View>
 
       {/* Foto de perfil */}
       <View style={styles.photoContainer}>
-        <View style={styles.photoCircle}></View>
-        <TouchableOpacity style={styles.cameraButton} onPress={() => {}}>
-          <Feather name="camera" size={24} color="#071e41" />
+        <View style={[styles.photoCircle, { backgroundColor: colors.white, borderColor: colors.text }]}></View>
+        <TouchableOpacity
+          style={[styles.cameraButton, { backgroundColor: colors.primary }]}
+          onPress={() => {}}>
+          <Feather name="camera" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -155,14 +150,49 @@ const EditPerfil = () => {
       {renderField('Código Postal', 'postal_code', 'Código Postal')}
       {renderField('Dirección', 'description', 'Dirección')}
 
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Guardar Cambios</Text>
+      {/* Selector de tema después de los campos */}
+      <Text style={{ fontWeight: "bold", color: colors.primary, marginTop: 10, marginBottom: 5, alignSelf: "flex-start" }}>
+        Cambiar tema
+      </Text>
+      <View style={{ flexDirection: "row", marginBottom: 20 }}>
+        {themeOptions.map((opt) => (
+          <TouchableOpacity
+            key={opt.key}
+            onPress={() => setTheme(opt.key)}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: opt.color,
+              marginHorizontal: 6,
+              borderWidth: theme === opt.key ? 3 : 1,
+              borderColor: theme === opt.key ? colors.primary : "#071e41",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {theme === opt.key && (
+              <Feather name="check" size={18} color={opt.key === "light" ? "#071e41" : "#fff"} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: colors.primary }]}
+        onPress={handleSave}
+      >
+        <Text style={[styles.buttonText, { color: colors.buttonText }]}>Guardar Cambios</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+      <TouchableOpacity
+        style={[styles.logoutButton, { backgroundColor: colors.danger }]}
+        onPress={handleLogout}
+      >
+        <Text style={[styles.logoutButtonText, { color: colors.buttonText }]}>Cerrar sesión</Text>
       </TouchableOpacity>
     </ScrollView>
   );
+  
 };
 
 export default EditPerfil;
@@ -170,7 +200,6 @@ export default EditPerfil;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#ccebf3',
     padding: 20,
     alignItems: 'center',
   },
@@ -182,26 +211,21 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#071e41',
   },
   cameraButton: {
     marginTop: 10,
-    backgroundColor: '#39adbe',
     padding: 10,
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#ffffff',
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#39adbe',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -210,16 +234,13 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontWeight: 'bold',
-    color: '#071e41',
     fontSize: 14,
   },
   cardInput: {
-    color: '#000',
     paddingVertical: 4,
     fontSize: 14,
   },
   button: {
-    backgroundColor: '#39adbe',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -228,7 +249,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logoutButton: {
-    backgroundColor: 'red',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -237,12 +257,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonText: {
-    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
   logoutButtonText: {
-    color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
   }

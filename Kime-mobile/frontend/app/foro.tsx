@@ -7,9 +7,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTheme } from './context/themeContext'; // Ajusta según la ruta real
 
 type Drink = {
   _id: string;
@@ -24,6 +25,8 @@ type Drink = {
 };
 
 export default function PublicDrinksScreen() {
+  const { colors } = useTheme();
+
   const [drinks, setDrinks] = useState<Drink[]>([]);
   const [filtered, setFiltered] = useState<Drink[]>([]);
   const [search, setSearch] = useState('');
@@ -33,7 +36,7 @@ export default function PublicDrinksScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get('http://localhost:3000/api/drink/published', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setDrinks(response.data);
       setFiltered(response.data);
@@ -60,7 +63,6 @@ export default function PublicDrinksScreen() {
           d.name.toLowerCase().includes(s) ||
           d.type.toLowerCase().includes(s) ||
           d.ingredients.some(i => i.ingredient.name.toLowerCase().includes(s))
-
       );
     }
 
@@ -76,9 +78,13 @@ export default function PublicDrinksScreen() {
   const likeDrink = async (drinkId: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.post(`http://localhost:3000/api/drink/${drinkId}/like`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(
+        `http://localhost:3000/api/drink/${drinkId}/like`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       fetchPublicDrinks();
     } catch (err) {
       console.error('Error al dar like:', err);
@@ -88,9 +94,13 @@ export default function PublicDrinksScreen() {
   const saveDrink = async (drinkId: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.post(`http://localhost:3000/api/drink/${drinkId}/save`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(
+        `http://localhost:3000/api/drink/${drinkId}/save`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       fetchPublicDrinks();
     } catch (err) {
       console.error('Error al guardar bebida:', err);
@@ -112,25 +122,97 @@ export default function PublicDrinksScreen() {
           <Icon
             name={item.isLiked ? 'heart' : 'heart-outline'}
             size={24}
-            color="#FF4136"
+            color={colors.likeIcon}
           />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => saveDrink(item._id)}>
           <Icon
             name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
             size={24}
-            color="#0074D9"
+            color={colors.saveIcon}
           />
         </TouchableOpacity>
       </View>
     </View>
   );
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContent: {
+      padding: 16,
+    },
+    searchInput: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      margin: 16,
+      fontSize: 16,
+      color: colors.text,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sortRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginBottom: 8,
+    },
+    sortButton: {
+      marginHorizontal: 10,
+    },
+    sortText: {
+      color: colors.textSecondary,
+      fontSize: 16,
+    },
+    sortSelected: {
+      fontWeight: 'bold',
+      color: colors.primary,
+      textDecorationLine: 'underline',
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 10,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 3,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 4,
+    },
+    text: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      marginBottom: 2,
+    },
+    likes: {
+      color: colors.success,
+      marginTop: 6,
+      marginBottom: 8,
+      fontWeight: '600',
+    },
+    iconRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      width: 60,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Buscar por nombre o ingrediente..."
-        placeholderTextColor="#aaa"
+        placeholderTextColor={colors.placeholder}
         value={search}
         onChangeText={setSearch}
         style={styles.searchInput}
@@ -151,75 +233,10 @@ export default function PublicDrinksScreen() {
 
       <FlatList
         data={filtered}
-        keyExtractor={item => item._id}
+        keyExtractor={(item) => item._id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#001F3F',
-  },
-  listContent: {
-    padding: 16,
-  },
-  searchInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    margin: 16,
-    fontSize: 16,
-    color: '#000',
-  },
-  sortRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  sortButton: {
-    marginHorizontal: 10,
-  },
-  sortText: {
-    color: '#CCCCCC',
-    fontSize: 16,
-  },
-  sortSelected: {
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textDecorationLine: 'underline',
-  },
-  card: {
-    backgroundColor: '#003366',
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 12,
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  text: {
-    color: '#CCCCCC',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  likes: {
-    color: '#2ECC40',
-    marginTop: 6,
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    width: 60,
-  },
-});

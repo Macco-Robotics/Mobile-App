@@ -10,8 +10,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useTheme } from './context/themeContext'; // ajusta ruta si es necesario
 
-// Tipo Drink compatible con frontend
 type Drink = {
   _id: string;
   name: string;
@@ -34,6 +34,8 @@ type Drink = {
 };
 
 export default function CreatedSavedDrinks() {
+  const { colors } = useTheme();
+
   const { type } = useLocalSearchParams(); // 'created' or 'saved'
   const [drinks, setDrinks] = useState<Drink[]>([]);
   const [filtered, setFiltered] = useState<Drink[]>([]);
@@ -91,11 +93,58 @@ export default function CreatedSavedDrinks() {
     </View>
   );
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    searchInput: {
+      backgroundColor: colors.card,
+      margin: 16,
+      padding: 10,
+      borderRadius: 8,
+      fontSize: 16,
+      color: colors.text,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sortButton: {
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    sortText: {
+      color: colors.placeholder,
+      fontSize: 14,
+    },
+    listContent: {
+      paddingHorizontal: 16,
+    },
+    card: {
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: 10,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 4,
+    },
+    text: {
+      color: colors.placeholder,
+      fontSize: 14,
+      marginBottom: 2,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Buscar por nombre, tipo o ingrediente..."
-        placeholderTextColor="#aaa"
+        placeholderTextColor={colors.placeholder}
         style={styles.searchInput}
         value={search}
         onChangeText={setSearch}
@@ -110,49 +159,8 @@ export default function CreatedSavedDrinks() {
         keyExtractor={item => item._id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#001F3F',
-  },
-  searchInput: {
-    backgroundColor: '#fff',
-    margin: 16,
-    padding: 10,
-    borderRadius: 8,
-    fontSize: 16,
-  },
-  sortButton: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  sortText: {
-    color: '#ccc',
-    fontSize: 14,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-  },
-  card: {
-    backgroundColor: '#003366',
-    padding: 16,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  title: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  text: {
-    color: '#ccc',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-});

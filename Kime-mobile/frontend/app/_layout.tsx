@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useFocusEffect } from 'expo-router';
-
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { authEvents } from '../utils/authEvents';
 import Navbar from './navbar';
+import { ThemeProvider } from './context/themeContext'; // <-- Importa el ThemeProvider
 
 export default function RootLayout() {
   const [isLogged, setIsLogged] = useState<boolean>(false);
@@ -28,20 +28,22 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-      {isLogged && <Navbar />}
-    </View>
+    <ThemeProvider>
+      <View style={styles.container}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
+        {isLogged && <Navbar />}
+      </View>
+    </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff', // Puedes quitar este color fijo si usas el contexto
   },
 });
